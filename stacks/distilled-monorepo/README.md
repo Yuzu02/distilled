@@ -38,6 +38,22 @@ it ever reaching a terminal or a CI log.
 | `DISCORD_WEBHOOK_URL` | secret | `DISCORD_WEBHOOK_URL` | release |
 | `DISTILLED_REPOS_OWNER` | variable | `DISTILLED_REPOS_OWNER`, default `distilled-mirror` | submodules stack |
 
+One credential goes to a mirror, not to this repository:
+
+| name | kind | repository | source | read by |
+|---|---|---|---|---|
+| `AWS_ACCESS_KEY_ID` | secret | `distilled-mirror/spec-mirror-aws` | minted here | `update-specs.yml` |
+| `AWS_SECRET_ACCESS_KEY` | secret | `distilled-mirror/spec-mirror-aws` | minted here | `update-specs.yml` |
+
+The AWS mirror also mirrors the EventBridge `aws.events` schema registry: the
+schemas of the events AWS services send, such as an SES bounce or complaint.
+The registry is an AWS API and takes signed requests only. The stack creates
+the IAM user `distilled-spec-mirror-aws`, which can call
+`schemas:ListSchemas` and `schemas:DescribeSchema` on `aws.events` and nothing
+else, mints its access key, and writes the key into the mirror's Actions
+secrets. AWS returns the secret half only at creation, so to rotate the key,
+replace the `spec-mirror-aws-key` resource.
+
 The two sourced from the environment cannot be minted through any API, and
 GitHub never hands an existing secret's value back, so the stack treats each as
 optional: a value present in the environment is written, an absent one leaves
@@ -127,4 +143,6 @@ The admin profile needs Cloudflare permission to *create API tokens* — the
 Global API Key, or a token with `User > API Tokens > Write` and
 `Account > API Tokens > Write`. A standard "Edit Cloudflare Workers" token
 cannot mint other tokens. It also needs admin on `alchemy-run/distilled`, to
-converge the repository settings.
+converge the repository settings, and on `distilled-mirror/spec-mirror-aws`,
+to write its secrets. Its AWS credentials need IAM permission to create a user,
+its inline policy and an access key.
