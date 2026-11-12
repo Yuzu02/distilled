@@ -422,7 +422,9 @@ const retryWith = (
     return Effect.flatMap(backoffDelay(b, n, e, last.hintMs), (ms) => {
       if (ms === undefined) return Effect.fail(e);
       const cost = budget?.withdraw(last.host, isThrottling(e));
-      if (budget !== undefined && cost === undefined) return Effect.fail(e);
+      if (budget !== undefined && cost === undefined) {
+        return b.longPoll ? Effect.flatMap(Effect.sleep(ms), () => Effect.fail(e)) : Effect.fail(e);
+      }
       const next =
         cost === undefined
           ? again(n + 2)
