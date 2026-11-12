@@ -177,6 +177,7 @@ export const getProjectsTraces: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetProjectsTraces",
+  retryPolicy: { baseMs: 100, capMs: 1000, factor: 1.2 },
 }));
 
 export type ListProjectsTracesError = NotFound | Forbidden | GcpOpError;
@@ -195,6 +196,7 @@ export const listProjectsTraces: API.PaginatedOperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ListProjectsTraces",
+  retryPolicy: { baseMs: 100, capMs: 1000, factor: 1.2 },
   pagination: { inputToken: "pageToken", outputToken: "nextPageToken" } as const,
 })) as any;
 
@@ -213,6 +215,7 @@ export const patchTracesProjects: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PatchTracesProjects",
+  retryPolicy: { baseMs: 100, capMs: 1000, factor: 1.2 },
 }));
 
 // Schema builders: each runs one schema initializer, on that schema's first use.

@@ -675,6 +675,7 @@ export const accessProjectsLocationsSecretsVersions: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "AccessProjectsLocationsSecretsVersions",
+  retryPolicy: { maxAttempts: 5, baseMs: 2000, capMs: 60000, factor: 2 },
 }));
 
 export type AccessProjectsSecretsVersionsError =
@@ -696,6 +697,7 @@ export const accessProjectsSecretsVersions: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "AccessProjectsSecretsVersions",
+  retryPolicy: { maxAttempts: 5, baseMs: 2000, capMs: 60000, factor: 2 },
 }));
 
 export type AddVersionProjectsLocationsSecretsError =

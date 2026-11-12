@@ -7768,6 +7768,7 @@ export const checkProjectsLocationsGroundingConfigs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CheckProjectsLocationsGroundingConfigs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type CollectProjectsLocationsCollectionsDataStoresUserEventsError =
@@ -7858,6 +7859,7 @@ export const completeQueryProjectsLocationsCollectionsDataStores: API.OperationM
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CompleteQueryProjectsLocationsCollectionsDataStores",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type CompleteQueryProjectsLocationsCollectionsDataStoresCompletionConfigError =
@@ -7888,6 +7890,7 @@ export const completeQueryProjectsLocationsCollectionsDataStoresCompletionConfig
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CompleteQueryProjectsLocationsCollectionsDataStoresCompletionConfig",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type CompleteQueryProjectsLocationsCollectionsEnginesCompletionConfigError =
@@ -7918,6 +7921,7 @@ export const completeQueryProjectsLocationsCollectionsEnginesCompletionConfig: A
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CompleteQueryProjectsLocationsCollectionsEnginesCompletionConfig",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type CompleteQueryProjectsLocationsDataStoresError = NotFound | Forbidden | GcpOpError;
@@ -7939,6 +7943,7 @@ export const completeQueryProjectsLocationsDataStores: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CompleteQueryProjectsLocationsDataStores",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type CompleteQueryProjectsLocationsDataStoresCompletionConfigError =
@@ -7969,6 +7974,7 @@ export const completeQueryProjectsLocationsDataStoresCompletionConfig: API.Opera
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CompleteQueryProjectsLocationsDataStoresCompletionConfig",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type ConverseProjectsLocationsCollectionsDataStoresConversationsError =
@@ -10978,6 +10984,7 @@ export const importProjectsLocationsCollectionsDataStoresBranchesDocuments: API.
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsCollectionsDataStoresBranchesDocuments",
+  retryPolicy: { baseMs: 1000, capMs: 30000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsCollectionsDataStoresCompletionSuggestionsError =
@@ -11004,6 +11011,7 @@ export const importProjectsLocationsCollectionsDataStoresCompletionSuggestions: 
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsCollectionsDataStoresCompletionSuggestions",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsCollectionsDataStoresSuggestionDenyListEntriesError =
@@ -11030,6 +11038,7 @@ export const importProjectsLocationsCollectionsDataStoresSuggestionDenyListEntri
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsCollectionsDataStoresSuggestionDenyListEntries",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsCollectionsDataStoresUserEventsError =
@@ -11056,6 +11065,7 @@ export const importProjectsLocationsCollectionsDataStoresUserEvents: API.Operati
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsCollectionsDataStoresUserEvents",
+  retryPolicy: { baseMs: 1000, capMs: 30000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsDataStoresBranchesDocumentsError =
@@ -11082,6 +11092,7 @@ export const importProjectsLocationsDataStoresBranchesDocuments: API.OperationMe
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsDataStoresBranchesDocuments",
+  retryPolicy: { baseMs: 1000, capMs: 30000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsDataStoresCompletionSuggestionsError =
@@ -11108,6 +11119,7 @@ export const importProjectsLocationsDataStoresCompletionSuggestions: API.Operati
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsDataStoresCompletionSuggestions",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsDataStoresSuggestionDenyListEntriesError =
@@ -11134,6 +11146,7 @@ export const importProjectsLocationsDataStoresSuggestionDenyListEntries: API.Ope
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsDataStoresSuggestionDenyListEntries",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsDataStoresUserEventsError =
@@ -11156,6 +11169,7 @@ export const importProjectsLocationsDataStoresUserEvents: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsDataStoresUserEvents",
+  retryPolicy: { baseMs: 1000, capMs: 30000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsSampleQuerySetsSampleQueriesError =
@@ -11204,6 +11218,7 @@ export const importProjectsLocationsUserEvents: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsUserEvents",
+  retryPolicy: { baseMs: 1000, capMs: 30000, factor: 1.3 },
 }));
 
 export type ListIdentityMappingsProjectsLocationsIdentityMappingStoresError =
@@ -13288,6 +13303,7 @@ export const purgeProjectsLocationsCollectionsDataStoresCompletionSuggestions: A
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PurgeProjectsLocationsCollectionsDataStoresCompletionSuggestions",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type PurgeProjectsLocationsCollectionsDataStoresSuggestionDenyListEntriesError =
@@ -13314,6 +13330,7 @@ export const purgeProjectsLocationsCollectionsDataStoresSuggestionDenyListEntrie
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PurgeProjectsLocationsCollectionsDataStoresSuggestionDenyListEntries",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type PurgeProjectsLocationsCollectionsDataStoresUserEventsError =
@@ -13392,6 +13409,7 @@ export const purgeProjectsLocationsDataStoresCompletionSuggestions: API.Operatio
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PurgeProjectsLocationsDataStoresCompletionSuggestions",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type PurgeProjectsLocationsDataStoresSuggestionDenyListEntriesError =
@@ -13418,6 +13436,7 @@ export const purgeProjectsLocationsDataStoresSuggestionDenyListEntries: API.Oper
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PurgeProjectsLocationsDataStoresSuggestionDenyListEntries",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type PurgeProjectsLocationsDataStoresUserEventsError =
@@ -13492,6 +13511,7 @@ export const recommendProjectsLocationsCollectionsDataStoresServingConfigs: API.
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RecommendProjectsLocationsCollectionsDataStoresServingConfigs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type RecommendProjectsLocationsCollectionsEnginesServingConfigsError =
@@ -13522,6 +13542,7 @@ export const recommendProjectsLocationsCollectionsEnginesServingConfigs: API.Ope
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RecommendProjectsLocationsCollectionsEnginesServingConfigs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type RecommendProjectsLocationsDataStoresServingConfigsError =
@@ -13552,6 +13573,7 @@ export const recommendProjectsLocationsDataStoresServingConfigs: API.OperationMe
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RecommendProjectsLocationsDataStoresServingConfigs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type RecrawlUrisProjectsLocationsCollectionsDataStoresSiteSearchEngineError =
@@ -13656,6 +13678,7 @@ export const removeSuggestionProjectsLocationsCollectionsEnginesCompletionConfig
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RemoveSuggestionProjectsLocationsCollectionsEnginesCompletionConfig",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type ResumeProjectsLocationsCollectionsEnginesError =
@@ -14080,6 +14103,7 @@ export const streamAssistProjectsLocationsCollectionsEnginesAssistants: API.Oper
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "StreamAssistProjectsLocationsCollectionsEnginesAssistants",
+  retryPolicy: { baseMs: 1000, capMs: 30000, factor: 1.3 },
 }));
 
 export type TrainCustomModelProjectsLocationsCollectionsDataStoresError =

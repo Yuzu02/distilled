@@ -2090,6 +2090,7 @@ export const batchProcessProjectsLocationsProcessors: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "BatchProcessProjectsLocationsProcessors",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 60000, factor: 1.5 },
 }));
 
 export type BatchProcessProjectsLocationsProcessorsProcessorVersionsError =
@@ -2116,6 +2117,7 @@ export const batchProcessProjectsLocationsProcessorsProcessorVersions: API.Opera
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "BatchProcessProjectsLocationsProcessorsProcessorVersions",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 60000, factor: 1.5 },
 }));
 
 export type CancelProjectsLocationsOperationsError =
@@ -2863,6 +2865,7 @@ export const processProjectsLocationsProcessors: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ProcessProjectsLocationsProcessors",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 90000, factor: 9 },
 }));
 
 export type ProcessProjectsLocationsProcessorsProcessorVersionsError =
@@ -2889,6 +2892,7 @@ export const processProjectsLocationsProcessorsProcessorVersions: API.OperationM
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ProcessProjectsLocationsProcessorsProcessorVersions",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 90000, factor: 9 },
 }));
 
 export type ReviewDocumentProjectsLocationsProcessorsHumanReviewConfigError =
@@ -2915,6 +2919,7 @@ export const reviewDocumentProjectsLocationsProcessorsHumanReviewConfig: API.Ope
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ReviewDocumentProjectsLocationsProcessorsHumanReviewConfig",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 60000, factor: 1.5 },
 }));
 
 export type SetDefaultProcessorVersionProjectsLocationsProcessorsError =

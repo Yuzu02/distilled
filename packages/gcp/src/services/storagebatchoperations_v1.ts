@@ -610,6 +610,7 @@ export const cancelProjectsLocationsJobs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CancelProjectsLocationsJobs",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 60000, factor: 2 },
 }));
 
 export type CancelProjectsLocationsOperationsError =
@@ -732,6 +733,7 @@ export const getProjectsLocationsJobs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetProjectsLocationsJobs",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 60000, factor: 2 },
 }));
 
 export type GetProjectsLocationsJobsBucketOperationsError = NotFound | Forbidden | GcpOpError;
@@ -749,6 +751,7 @@ export const getProjectsLocationsJobsBucketOperations: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetProjectsLocationsJobsBucketOperations",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 60000, factor: 2 },
 }));
 
 export type GetProjectsLocationsOperationsError = NotFound | Forbidden | GcpOpError;
@@ -803,6 +806,7 @@ export const listProjectsLocationsJobs: API.PaginatedOperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ListProjectsLocationsJobs",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 60000, factor: 2 },
   pagination: { inputToken: "pageToken", outputToken: "nextPageToken" } as const,
 })) as any;
 
@@ -822,6 +826,7 @@ export const listProjectsLocationsJobsBucketOperations: API.PaginatedOperationMe
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ListProjectsLocationsJobsBucketOperations",
+  retryPolicy: { maxAttempts: 5, baseMs: 1000, capMs: 60000, factor: 2 },
   pagination: { inputToken: "pageToken", outputToken: "nextPageToken" } as const,
 })) as any;
 

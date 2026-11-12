@@ -1590,6 +1590,7 @@ export const getRequestStatus: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetRequestStatus",
+  retryPolicy: { baseMs: 5000, capMs: 60000, factor: 1.3 },
 }));
 
 export type IngestAdEventsError = NotFound | Forbidden | BadRequest | Conflict | GcpOpError;
@@ -1622,6 +1623,7 @@ export const ingestAudienceMembers: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "IngestAudienceMembers",
+  retryPolicy: { baseMs: 5000, capMs: 60000, factor: 1.3 },
 }));
 
 export type IngestEventsError = NotFound | Forbidden | BadRequest | Conflict | GcpOpError;
@@ -1638,6 +1640,7 @@ export const ingestEvents: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "IngestEvents",
+  retryPolicy: { baseMs: 5000, capMs: 60000, factor: 1.3 },
 }));
 
 export type IngestUsersError = NotFound | Forbidden | BadRequest | Conflict | GcpOpError;
@@ -1654,6 +1657,7 @@ export const ingestUsers: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "IngestUsers",
+  retryPolicy: { baseMs: 5000, capMs: 60000, factor: 1.3 },
 }));
 
 export type ListAccountTypesAccountsUserListDirectLicensesError = NotFound | Forbidden | GcpOpError;
@@ -1861,6 +1865,7 @@ export const removeAudienceMembers: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RemoveAudienceMembers",
+  retryPolicy: { baseMs: 5000, capMs: 60000, factor: 1.3 },
 }));
 
 export type RemoveUsersError = NotFound | Forbidden | BadRequest | Conflict | GcpOpError;
@@ -1877,6 +1882,7 @@ export const removeUsers: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RemoveUsers",
+  retryPolicy: { baseMs: 5000, capMs: 60000, factor: 1.3 },
 }));
 
 export type SearchAccountTypesAccountsPartnerLinksError = NotFound | Forbidden | GcpOpError;

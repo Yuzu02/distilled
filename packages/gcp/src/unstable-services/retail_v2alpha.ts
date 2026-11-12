@@ -2902,6 +2902,7 @@ export const acceptTermsProjectsRetailProject: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "AcceptTermsProjectsRetailProject",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type AddCatalogAttributeProjectsLocationsCatalogsAttributesConfigError =
@@ -2928,6 +2929,7 @@ export const addCatalogAttributeProjectsLocationsCatalogsAttributesConfig: API.O
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "AddCatalogAttributeProjectsLocationsCatalogsAttributesConfig",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type AddControlProjectsLocationsCatalogsServingConfigsError =
@@ -2980,6 +2982,7 @@ export const addFulfillmentPlacesProjectsLocationsCatalogsBranchesProducts: API.
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "AddFulfillmentPlacesProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type AddLocalInventoriesProjectsLocationsCatalogsBranchesProductsError =
@@ -3006,6 +3009,7 @@ export const addLocalInventoriesProjectsLocationsCatalogsBranchesProducts: API.O
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "AddLocalInventoriesProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type BatchRemoveCatalogAttributesProjectsLocationsCatalogsAttributesConfigError =
@@ -3036,6 +3040,7 @@ export const batchRemoveCatalogAttributesProjectsLocationsCatalogsAttributesConf
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "BatchRemoveCatalogAttributesProjectsLocationsCatalogsAttributesConfig",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type BatchUpdateProjectsLocationsCatalogsGenerativeQuestionError =
@@ -3088,6 +3093,7 @@ export const collectProjectsLocationsCatalogsUserEvents: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CollectProjectsLocationsCatalogsUserEvents",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type CompleteQueryProjectsLocationsCatalogsError = NotFound | Forbidden | GcpOpError;
@@ -3105,6 +3111,7 @@ export const completeQueryProjectsLocationsCatalogs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CompleteQueryProjectsLocationsCatalogs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type ConversationalSearchProjectsLocationsCatalogsPlacementsError =
@@ -3191,6 +3198,7 @@ export const createProjectsLocationsCatalogsBranchesProducts: API.OperationMetho
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "CreateProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type CreateProjectsLocationsCatalogsControlsError =
@@ -3313,6 +3321,7 @@ export const deleteProjectsLocationsCatalogsBranchesProducts: API.OperationMetho
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "DeleteProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type DeleteProjectsLocationsCatalogsControlsError =
@@ -3426,6 +3435,7 @@ export const enrollSolutionProjects: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "EnrollSolutionProjects",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type ExportAnalyticsMetricsProjectsLocationsCatalogsError =
@@ -3478,6 +3488,7 @@ export const exportProjectsLocationsCatalogsBranchesProducts: API.OperationMetho
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ExportProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type ExportProjectsLocationsCatalogsUserEventsError =
@@ -3500,6 +3511,7 @@ export const exportProjectsLocationsCatalogsUserEvents: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ExportProjectsLocationsCatalogsUserEvents",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type GetAlertConfigProjectsError = NotFound | Forbidden | GcpOpError;
@@ -3517,6 +3529,7 @@ export const getAlertConfigProjects: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetAlertConfigProjects",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type GetAttributesConfigProjectsLocationsCatalogsError = NotFound | Forbidden | GcpOpError;
@@ -3538,6 +3551,7 @@ export const getAttributesConfigProjectsLocationsCatalogs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetAttributesConfigProjectsLocationsCatalogs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type GetCompletionConfigProjectsLocationsCatalogsError = NotFound | Forbidden | GcpOpError;
@@ -3559,6 +3573,7 @@ export const getCompletionConfigProjectsLocationsCatalogs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetCompletionConfigProjectsLocationsCatalogs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type GetConversationalSearchCustomizationConfigProjectsLocationsCatalogsError =
@@ -3604,6 +3619,7 @@ export const getDefaultBranchProjectsLocationsCatalogs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetDefaultBranchProjectsLocationsCatalogs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type GetGenerativeQuestionFeatureProjectsLocationsCatalogsError =
@@ -3649,6 +3665,7 @@ export const getLoggingConfigProjects: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetLoggingConfigProjects",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type GetProjectsLocationsCatalogsBranchesError = NotFound | Forbidden | GcpOpError;
@@ -3666,6 +3683,7 @@ export const getProjectsLocationsCatalogsBranches: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetProjectsLocationsCatalogsBranches",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type GetProjectsLocationsCatalogsBranchesOperationsError = NotFound | Forbidden | GcpOpError;
@@ -3732,6 +3750,7 @@ export const getProjectsLocationsCatalogsBranchesProducts: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type GetProjectsLocationsCatalogsControlsError = NotFound | Forbidden | GcpOpError;
@@ -3851,6 +3870,7 @@ export const getRetailProjectProjects: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "GetRetailProjectProjects",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsCatalogsBranchesProductsError =
@@ -3877,6 +3897,7 @@ export const importProjectsLocationsCatalogsBranchesProducts: API.OperationMetho
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 300000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsCatalogsCompletionDataError =
@@ -3903,6 +3924,7 @@ export const importProjectsLocationsCatalogsCompletionData: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsCatalogsCompletionData",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type ImportProjectsLocationsCatalogsUserEventsError =
@@ -3925,6 +3947,7 @@ export const importProjectsLocationsCatalogsUserEvents: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ImportProjectsLocationsCatalogsUserEvents",
+  retryPolicy: { baseMs: 100, capMs: 300000, factor: 1.3 },
 }));
 
 export type ListEnrolledSolutionsProjectsError = NotFound | Forbidden | GcpOpError;
@@ -3946,6 +3969,7 @@ export const listEnrolledSolutionsProjects: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ListEnrolledSolutionsProjects",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type ListProjectsLocationsCatalogsError = NotFound | Forbidden | GcpOpError;
@@ -3964,6 +3988,7 @@ export const listProjectsLocationsCatalogs: API.PaginatedOperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ListProjectsLocationsCatalogs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
   pagination: { inputToken: "pageToken", outputToken: "nextPageToken" } as const,
 })) as any;
 
@@ -3982,6 +4007,7 @@ export const listProjectsLocationsCatalogsBranches: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ListProjectsLocationsCatalogsBranches",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type ListProjectsLocationsCatalogsBranchesProductsError = NotFound | Forbidden | GcpOpError;
@@ -4004,6 +4030,7 @@ export const listProjectsLocationsCatalogsBranchesProducts: API.PaginatedOperati
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ListProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
   pagination: { inputToken: "pageToken", outputToken: "nextPageToken" } as const,
 })) as any;
 
@@ -4201,6 +4228,7 @@ export const patchProjectsLocationsCatalogs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PatchProjectsLocationsCatalogs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type PatchProjectsLocationsCatalogsBranchesProductsError =
@@ -4227,6 +4255,7 @@ export const patchProjectsLocationsCatalogsBranchesProducts: API.OperationMethod
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PatchProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type PatchProjectsLocationsCatalogsControlsError =
@@ -4341,6 +4370,7 @@ export const predictProjectsLocationsCatalogsPlacements: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PredictProjectsLocationsCatalogsPlacements",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type PredictProjectsLocationsCatalogsServingConfigsError =
@@ -4367,6 +4397,7 @@ export const predictProjectsLocationsCatalogsServingConfigs: API.OperationMethod
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PredictProjectsLocationsCatalogsServingConfigs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type PurgeProjectsLocationsCatalogsBranchesProductsError =
@@ -4393,6 +4424,7 @@ export const purgeProjectsLocationsCatalogsBranchesProducts: API.OperationMethod
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PurgeProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type PurgeProjectsLocationsCatalogsUserEventsError =
@@ -4415,6 +4447,7 @@ export const purgeProjectsLocationsCatalogsUserEvents: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "PurgeProjectsLocationsCatalogsUserEvents",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type RejoinProjectsLocationsCatalogsUserEventsError =
@@ -4437,6 +4470,7 @@ export const rejoinProjectsLocationsCatalogsUserEvents: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RejoinProjectsLocationsCatalogsUserEvents",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type RemoveCatalogAttributeProjectsLocationsCatalogsAttributesConfigError =
@@ -4463,6 +4497,7 @@ export const removeCatalogAttributeProjectsLocationsCatalogsAttributesConfig: AP
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RemoveCatalogAttributeProjectsLocationsCatalogsAttributesConfig",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type RemoveControlProjectsLocationsCatalogsServingConfigsError =
@@ -4515,6 +4550,7 @@ export const removeFulfillmentPlacesProjectsLocationsCatalogsBranchesProducts: A
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RemoveFulfillmentPlacesProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type RemoveLocalInventoriesProjectsLocationsCatalogsBranchesProductsError =
@@ -4541,6 +4577,7 @@ export const removeLocalInventoriesProjectsLocationsCatalogsBranchesProducts: AP
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "RemoveLocalInventoriesProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type ReplaceCatalogAttributeProjectsLocationsCatalogsAttributesConfigError =
@@ -4567,6 +4604,7 @@ export const replaceCatalogAttributeProjectsLocationsCatalogsAttributesConfig: A
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "ReplaceCatalogAttributeProjectsLocationsCatalogsAttributesConfig",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type ResumeProjectsLocationsCatalogsModelsError =
@@ -4611,6 +4649,7 @@ export const searchProjectsLocationsCatalogsPlacements: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "SearchProjectsLocationsCatalogsPlacements",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type SearchProjectsLocationsCatalogsServingConfigsError =
@@ -4637,6 +4676,7 @@ export const searchProjectsLocationsCatalogsServingConfigs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "SearchProjectsLocationsCatalogsServingConfigs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type SetDefaultBranchProjectsLocationsCatalogsError =
@@ -4659,6 +4699,7 @@ export const setDefaultBranchProjectsLocationsCatalogs: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "SetDefaultBranchProjectsLocationsCatalogs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type SetInventoryProjectsLocationsCatalogsBranchesProductsError =
@@ -4685,6 +4726,7 @@ export const setInventoryProjectsLocationsCatalogsBranchesProducts: API.Operatio
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "SetInventoryProjectsLocationsCatalogsBranchesProducts",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type TuneProjectsLocationsCatalogsModelsError =
@@ -4729,6 +4771,7 @@ export const updateAlertConfigProjects: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "UpdateAlertConfigProjects",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type UpdateAttributesConfigProjectsLocationsCatalogsError =
@@ -4755,6 +4798,7 @@ export const updateAttributesConfigProjectsLocationsCatalogs: API.OperationMetho
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "UpdateAttributesConfigProjectsLocationsCatalogs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type UpdateCompletionConfigProjectsLocationsCatalogsError =
@@ -4781,6 +4825,7 @@ export const updateCompletionConfigProjectsLocationsCatalogs: API.OperationMetho
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "UpdateCompletionConfigProjectsLocationsCatalogs",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 export type UpdateConversationalSearchCustomizationConfigProjectsLocationsCatalogsError =
@@ -4889,6 +4934,7 @@ export const updateLoggingConfigProjects: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "UpdateLoggingConfigProjects",
+  retryPolicy: { baseMs: 100, capMs: 30000, factor: 1.3 },
 }));
 
 export type WriteProjectsLocationsCatalogsUserEventsError =
@@ -4911,6 +4957,7 @@ export const writeProjectsLocationsCatalogsUserEvents: API.OperationMethod<
   retry: Retry.Retry,
   telemetry: TELEMETRY,
   span: "WriteProjectsLocationsCatalogsUserEvents",
+  retryPolicy: { baseMs: 100, capMs: 5000, factor: 1.3 },
 }));
 
 // Schema builders: each runs one schema initializer, on that schema's first use.
