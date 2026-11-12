@@ -86,10 +86,10 @@ export class NotFound
 export type StringList = Array<string>;
 /** Request for the Acknowledge method. */
 export interface AcknowledgeRequest {
-  /** The subscription whose message is being acknowledged. */
-  subscription?: string | undefined;
   /** The acknowledgment ID for the message being acknowledged. This was returned by the Pub/Sub system in the Pull response. */
   ackId?: StringList | undefined;
+  /** The subscription whose message is being acknowledged. */
+  subscription?: string | undefined;
 }
 export interface AcknowledgeSubscriptionsRequest {
   /** Request body */
@@ -104,14 +104,14 @@ export interface PushConfig {
 }
 /** A subscription resource. */
 export interface Subscription {
-  /** The name of the topic from which this subscription is receiving messages. */
-  topic?: string | undefined;
   /** Name of the subscription. */
   name?: string | undefined;
-  /** For either push or pull delivery, the value is the maximum time after a subscriber receives a message before the subscriber should acknowledge or Nack the message. If the Ack deadline for a message passes without an Ack or a Nack, the Pub/Sub system will eventually redeliver the message. If a subscriber acknowledges after the deadline, the Pub/Sub system may accept the Ack, but it is possible that the message has been already delivered again. Multiple Acks to the message are allowed and will succeed. For push delivery, this value is used to set the request timeout for the call to the push endpoint. For pull delivery, this value is used as the initial value for the Ack deadline. It may be overridden for each message using its corresponding ack_id with ModifyAckDeadline. While a message is outstanding (i.e. it has been delivered to a pull subscriber and the subscriber has not yet Acked or Nacked), the Pub/Sub system will not deliver that message to another pull subscriber (on a best-effort basis). */
-  ackDeadlineSeconds?: number | undefined;
+  /** The name of the topic from which this subscription is receiving messages. */
+  topic?: string | undefined;
   /** If push delivery is used with this subscription, this field is used to configure it. */
   pushConfig?: PushConfig | undefined;
+  /** For either push or pull delivery, the value is the maximum time after a subscriber receives a message before the subscriber should acknowledge or Nack the message. If the Ack deadline for a message passes without an Ack or a Nack, the Pub/Sub system will eventually redeliver the message. If a subscriber acknowledges after the deadline, the Pub/Sub system may accept the Ack, but it is possible that the message has been already delivered again. Multiple Acks to the message are allowed and will succeed. For push delivery, this value is used to set the request timeout for the call to the push endpoint. For pull delivery, this value is used as the initial value for the Ack deadline. It may be overridden for each message using its corresponding ack_id with ModifyAckDeadline. While a message is outstanding (i.e. it has been delivered to a pull subscriber and the subscriber has not yet Acked or Nacked), the Pub/Sub system will not deliver that message to another pull subscriber (on a best-effort basis). */
+  ackDeadlineSeconds?: number | undefined;
 }
 export interface CreateSubscriptionsRequest {
   /** Request body */
@@ -143,10 +143,10 @@ export interface GetTopicsRequest {
   topic: string;
 }
 export interface ListSubscriptionsRequest {
-  /** The value obtained in the last ListSubscriptionsResponse for continuation. */
-  pageToken?: string | undefined;
   /** A valid label query expression. */
   query?: string | undefined;
+  /** The value obtained in the last ListSubscriptionsResponse for continuation. */
+  pageToken?: string | undefined;
   /** Maximum number of subscriptions to return. */
   maxResults?: number | undefined;
 }
@@ -176,12 +176,12 @@ export interface ListTopicsResponse {
 }
 /** Request for the ModifyAckDeadline method. */
 export interface ModifyAckDeadlineRequest {
-  /** The acknowledgment ID. Either this or ack_ids must be populated, not both. */
-  ackId?: string | undefined;
   /** List of acknowledgment IDs. Either this field or ack_id should be populated, not both. */
   ackIds?: StringList | undefined;
   /** Next Index: 5 The name of the subscription from which messages are being pulled. */
   subscription?: string | undefined;
+  /** The acknowledgment ID. Either this or ack_ids must be populated, not both. */
+  ackId?: string | undefined;
   /** The new ack deadline with respect to the time this request was sent to the Pub/Sub system. Must be >= 0. For example, if the value is 10, the new ack deadline will expire 10 seconds after the ModifyAckDeadline call was made. Specifying zero may immediately make the message available for another pull request. */
   ackDeadlineSeconds?: number | undefined;
 }
@@ -202,24 +202,24 @@ export interface ModifyPushConfigSubscriptionsRequest {
 }
 /** A key-value pair applied to a given object. */
 export interface Label {
+  /** A string value. */
+  strValue?: string | undefined;
   /** An integer value. */
   numValue?: string | undefined;
   /** The key of a label is a syntactically valid URL (as per RFC 1738) with the "scheme" and initial slashes omitted and with the additional restrictions noted below. Each key should be globally unique. The "host" portion is called the "namespace" and is not necessarily resolvable to a network endpoint. Instead, the namespace indicates what system or entity defines the semantics of the label. Namespaces do not restrict the set of objects to which a label may be associated. Keys are defined by the following grammar: key = hostname "/" kpath kpath = ksegment *[ "/" ksegment ] ksegment = alphadigit | *[ alphadigit | "-" | "_" | "." ] where "hostname" and "alphadigit" are defined as in RFC 1738. Example key: spanner.google.com/universe */
   key?: string | undefined;
-  /** A string value. */
-  strValue?: string | undefined;
 }
 export type LabelList = Array<Label>;
 /** A message data and its labels. */
 export interface PubsubMessage {
+  /** Optional list of labels for this message. Keys in this collection must be unique. */
+  label?: LabelList | undefined;
+  /** The message payload. */
+  data?: string | undefined;
   /** ID of this message assigned by the server at publication time. Guaranteed to be unique within the topic. This value may be read by a subscriber that receives a PubsubMessage via a Pull call or a push delivery. It must not be populated by a publisher in a Publish call. */
   messageId?: string | undefined;
   /** The time at which the message was published. The time is milliseconds since the UNIX epoch. */
   publishTime?: string | undefined;
-  /** The message payload. */
-  data?: string | undefined;
-  /** Optional list of labels for this message. Keys in this collection must be unique. */
-  label?: LabelList | undefined;
 }
 export type PubsubMessageList = Array<PubsubMessage>;
 /** Request for the PublishBatch method. */
@@ -251,12 +251,12 @@ export interface PublishTopicsRequest {
 }
 /** Request for the PullBatch method. */
 export interface PullBatchRequest {
+  /** The subscription from which messages should be pulled. */
+  subscription?: string | undefined;
   /** The maximum number of PubsubEvents returned for this request. The Pub/Sub system may return fewer than the number of events specified. */
   maxEvents?: number | undefined;
   /** If this is specified as true the system will respond immediately even if it is not able to return a message in the Pull response. Otherwise the system is allowed to wait until at least one message is available rather than returning no messages. The client may cancel the request if it does not wish to wait any longer for the response. */
   returnImmediately?: boolean | undefined;
-  /** The subscription from which messages should be pulled. */
-  subscription?: string | undefined;
 }
 export interface PullBatchSubscriptionsRequest {
   /** Request body */
@@ -268,17 +268,17 @@ export interface PubsubEvent {
   deleted?: boolean | undefined;
   /** Indicates that this subscription has been truncated. */
   truncated?: boolean | undefined;
-  /** A received message. */
-  message?: PubsubMessage | undefined;
   /** The subscription that received the event. */
   subscription?: string | undefined;
+  /** A received message. */
+  message?: PubsubMessage | undefined;
 }
 /** Either a PubsubMessage or a truncation event. One of these two must be populated. */
 export interface PullResponse {
-  /** A pubsub message or truncation event. */
-  pubsubEvent?: PubsubEvent | undefined;
   /** This ID must be used to acknowledge the received event or message. */
   ackId?: string | undefined;
+  /** A pubsub message or truncation event. */
+  pubsubEvent?: PubsubEvent | undefined;
 }
 export type PullResponseList = Array<PullResponse>;
 /** Response for the PullBatch method. */
@@ -288,10 +288,10 @@ export interface PullBatchResponse {
 }
 /** Request for the Pull method. */
 export interface PullRequest {
-  /** If this is specified as true the system will respond immediately even if it is not able to return a message in the Pull response. Otherwise the system is allowed to wait until at least one message is available rather than returning FAILED_PRECONDITION. The client may cancel the request if it does not wish to wait any longer for the response. */
-  returnImmediately?: boolean | undefined;
   /** The subscription from which a message should be pulled. */
   subscription?: string | undefined;
+  /** If this is specified as true the system will respond immediately even if it is not able to return a message in the Pull response. Otherwise the system is allowed to wait until at least one message is available rather than returning FAILED_PRECONDITION. The client may cancel the request if it does not wish to wait any longer for the response. */
+  returnImmediately?: boolean | undefined;
 }
 export interface PullSubscriptionsRequest {
   /** Request body */
@@ -589,8 +589,8 @@ function __c1(j: number): any {
     case 0:
       return S.suspend(() =>
         S.Struct({
-          pageToken: S.optional(S.String.pipe(T.Query())),
           query: S.optional(S.String.pipe(T.Query())),
+          pageToken: S.optional(S.String.pipe(T.Query())),
           maxResults: S.optional(S.Number.pipe(T.Query())),
         }).pipe(
           T.Http({
@@ -643,9 +643,9 @@ function __c3(j: number): any {
     case 0:
       return S.suspend(() =>
         S.Struct({
-          ackId: S.optional(S.String),
           ackIds: S.optional(__S(48, __c12, 0)),
           subscription: S.optional(S.String),
+          ackId: S.optional(S.String),
           ackDeadlineSeconds: S.optional(S.Number),
         }),
       ).annotate({ identifier: "ModifyAckDeadlineRequest" });
@@ -722,9 +722,9 @@ function __c6(j: number): any {
     case 0:
       return S.suspend(() =>
         S.Struct({
+          strValue: S.optional(S.String),
           numValue: S.optional(S.String),
           key: S.optional(S.String),
-          strValue: S.optional(S.String),
         }),
       ).annotate({ identifier: "Label" });
     case 1:
@@ -732,10 +732,10 @@ function __c6(j: number): any {
     case 2:
       return S.suspend(() =>
         S.Struct({
+          label: S.optional(__S(25, __c6, 1)),
+          data: S.optional(S.String),
           messageId: S.optional(S.String),
           publishTime: S.optional(S.String),
-          data: S.optional(S.String),
-          label: S.optional(__S(25, __c6, 1)),
         }),
       ).annotate({ identifier: "PubsubMessage" });
   }
@@ -768,9 +768,9 @@ function __c8(j: number): any {
     case 0:
       return S.suspend(() =>
         S.Struct({
+          subscription: S.optional(S.String),
           maxEvents: S.optional(S.Number),
           returnImmediately: S.optional(S.Boolean),
-          subscription: S.optional(S.String),
         }),
       ).annotate({ identifier: "PullBatchRequest" });
     case 1:
@@ -802,15 +802,15 @@ function __c9(j: number): any {
         S.Struct({
           deleted: S.optional(S.Boolean),
           truncated: S.optional(S.Boolean),
-          message: S.optional(__S(26, __c6, 2)),
           subscription: S.optional(S.String),
+          message: S.optional(__S(26, __c6, 2)),
         }),
       ).annotate({ identifier: "PubsubEvent" });
     case 1:
       return S.suspend(() =>
         S.Struct({
-          pubsubEvent: S.optional(__S(36, __c9, 0)),
           ackId: S.optional(S.String),
+          pubsubEvent: S.optional(__S(36, __c9, 0)),
         }),
       ).annotate({ identifier: "PullResponse" });
   }
@@ -820,8 +820,8 @@ function __c10(j: number): any {
     case 0:
       return S.suspend(() =>
         S.Struct({
-          returnImmediately: S.optional(S.Boolean),
           subscription: S.optional(S.String),
+          returnImmediately: S.optional(S.Boolean),
         }),
       ).annotate({ identifier: "PullRequest" });
     case 1:
@@ -843,8 +843,8 @@ function __c11(j: number): any {
     case 0:
       return S.suspend(() =>
         S.Struct({
-          subscription: S.optional(S.String),
           ackId: S.optional(__S(48, __c12, 0)),
+          subscription: S.optional(S.String),
         }),
       ).annotate({ identifier: "AcknowledgeRequest" });
     case 1:
@@ -894,10 +894,10 @@ function __c15(j: number): any {
     case 0:
       return S.suspend(() =>
         S.Struct({
-          topic: S.optional(S.String),
           name: S.optional(S.String),
-          ackDeadlineSeconds: S.optional(S.Number),
+          topic: S.optional(S.String),
           pushConfig: S.optional(__S(64, __c16, 0)),
+          ackDeadlineSeconds: S.optional(S.Number),
         }),
       ).annotate({ identifier: "Subscription" });
   }
