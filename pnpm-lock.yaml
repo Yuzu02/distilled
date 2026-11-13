@@ -1495,6 +1495,22 @@ importers:
         specifier: 'catalog:'
         version: 26.6.5
 
+  packages/namespacelabs:
+    dependencies:
+      '@distilled.cloud/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.2
+    devDependencies:
+      '@distilled.cloud/dev':
+        specifier: workspace:*
+        version: link:../dev
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.5
+
   packages/neon:
     dependencies:
       '@distilled.cloud/core':
@@ -1755,6 +1771,22 @@ importers:
       '@distilled.cloud/s3':
         specifier: workspace:*
         version: link:../s3
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.2
+    devDependencies:
+      '@distilled.cloud/dev':
+        specifier: workspace:*
+        version: link:../dev
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.5
+
+  packages/proxmox:
+    dependencies:
+      '@distilled.cloud/core':
+        specifier: workspace:*
+        version: link:../core
       effect:
         specifier: 'catalog:'
         version: 4.1.2
@@ -2077,6 +2109,22 @@ importers:
         version: 26.6.5
 
   packages/tailscale:
+    dependencies:
+      '@distilled.cloud/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.2
+    devDependencies:
+      '@distilled.cloud/dev':
+        specifier: workspace:*
+        version: link:../dev
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.5
+
+  packages/technitium:
     dependencies:
       '@distilled.cloud/core':
         specifier: workspace:*
