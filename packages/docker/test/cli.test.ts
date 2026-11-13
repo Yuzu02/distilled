@@ -120,6 +120,25 @@ describe("Docker CLI Effect SDK", () => {
       { ID: "b", State: "exited" },
     ]);
 
+    // Diagnostics refer to the physical line number, including blank lines
+    // that the JSONL reader deliberately skips.
+    const malformed = await Effect.runPromise(
+      Effect.flip(
+        Cli.decodeJsonLines(
+          {
+            stdout: '\n{"ID":"a","State":"running"}\n\n{"ID":23,"State":"exited"}\n',
+            stderr: "",
+            exitCode: 0,
+          },
+          lineShape,
+        ),
+      ),
+    );
+    expect(malformed).toMatchObject({
+      _tag: "DockerCliDecodeError",
+      message: "Invalid Docker CLI JSON or schema at line 4",
+    });
+
     const yamlShape = Schema.Struct({ services: Schema.Record(Schema.String, Schema.Unknown) });
     const config = await Effect.runPromise(
       Cli.decodeYaml(
@@ -530,6 +549,50 @@ describe("Docker CLI Effect SDK", () => {
     expect(result._tag).toBe("DockerCliExitError");
     expect(result.exitCode).toBe(19);
     expect(Redacted.value(result.stderr)).toContain("stream failure");
+
+    // Binary and text modes must share the same scoped exit/error contract.
+    const binaryFailure = await Effect.runPromise(
+      Effect.flip(
+        Stream.runDrain(
+          Cli.runBinaryStream([
+            "-e",
+            "process.stdout.write(Buffer.from([0,255])); process.stderr.write('binary failure'); process.exit(29)",
+          ]),
+        ).pipe(
+          Effect.provideService(Cli.CliSettings, { bin: process.execPath }),
+          Effect.provide(NodeServices.layer),
+        ),
+      ),
+    );
+    expect(binaryFailure).toMatchObject({ _tag: "DockerCliExitError", exitCode: 29 });
+    expect(Redacted.value(binaryFailure.stderr)).toContain("binary failure");
+  });
+
+  it("keeps Effect Stream taps active in both streamed output channels", async () => {
+    const observed = await Effect.runPromise(
+      Effect.gen(function* () {
+        const tapped = yield* Ref.make<ReadonlyArray<string>>([]);
+        const chunks = yield* Stream.runCollect(
+          Cli.runStream(["-e", "process.stdout.write('stdout'); process.stderr.write('stderr')"], {
+            bin: process.execPath,
+            stdoutTap: Stream.tap((text) =>
+              Ref.update(tapped, (items) => [...items, `out:${text}`]),
+            ),
+            stderrTap: Stream.tap((text) =>
+              Ref.update(tapped, (items) => [...items, `err:${text}`]),
+            ),
+          }),
+        );
+        return { chunks: Array.from(chunks), tapped: yield* Ref.get(tapped) };
+      }).pipe(Effect.provide(NodeServices.layer)),
+    );
+    expect(observed.chunks).toEqual(
+      expect.arrayContaining([
+        { channel: "stdout", text: "stdout" },
+        { channel: "stderr", text: "stderr" },
+      ]),
+    );
+    expect(observed.tapped).toEqual(expect.arrayContaining(["out:stdout", "err:stderr"]));
   });
 
   it("decodes container inspect JSON using the generated Engine schema", async () => {

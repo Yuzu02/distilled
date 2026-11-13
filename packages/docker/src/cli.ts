@@ -3,6 +3,7 @@
  * The package root continues to expose the Docker Engine HTTP SDK.
  */
 import { toEffect } from "@distilled.cloud/core/schema-lite";
+import * as A from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import * as Commands from "./cli/generated.ts";
@@ -77,9 +78,7 @@ const inspect = <I extends { readonly flags?: object }, O, E, R>(
     }
     return Effect.flatMap(cli(input as I, options), (result) =>
       Effect.flatMap(parseJson(result), (body) =>
-        decode(
-          Array.isArray(body) ? body.map((item) => omitAbsentOptionals(ast, item)) : body,
-        ).pipe(
+        decode(A.isArray(body) ? A.map(body, (item) => omitAbsentOptionals(ast, item)) : body).pipe(
           Effect.mapError(
             () =>
               new DockerCliDecodeError({

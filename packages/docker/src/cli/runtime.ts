@@ -5,41 +5,29 @@
  * builds argv vectors (never shell strings) and delegates process ownership,
  * cancellation and cleanup to Effect's ChildProcessSpawner and Scope.
  */
+import * as A from "effect/Array";
 import * as Bytes from "effect/Bytes";
 import * as Config from "effect/Config";
 import * as Context from "effect/Context";
-import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Yaml from "effect/encoding/Yaml";
+import * as Match from "effect/Match";
+import * as Option from "effect/Option";
+import * as Order from "effect/Order";
 import type * as PlatformError from "effect/PlatformError";
 import * as ChildProcess from "effect/process/ChildProcess";
 import type * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
+import * as R from "effect/Record";
 import * as Redacted from "effect/Redacted";
 import * as Ref from "effect/Ref";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
+import * as Str from "effect/String";
+import type { CommandSpec } from "./contract.ts";
 
 /** Contract for the metadata emitted by the official CLI spec generator. */
-export const FlagSpecSchema = Schema.Struct({
-  name: Schema.String,
-  type: Schema.String,
-  shorthand: Schema.optional(Schema.String),
-  defaultValue: Schema.optional(Schema.String),
-  description: Schema.optional(Schema.String),
-  minApiVersion: Schema.optional(Schema.String),
-  osType: Schema.optional(Schema.String),
-  deprecated: Schema.optional(Schema.Boolean),
-  experimental: Schema.optional(Schema.Boolean),
-});
-export type FlagSpec = Schema.Schema.Type<typeof FlagSpecSchema>;
-
-export const CommandSpecSchema = Schema.Struct({
-  command: Schema.Array(Schema.String),
-  usage: Schema.String,
-  flags: Schema.Record(Schema.String, FlagSpecSchema),
-  minimumArgs: Schema.Int.check(Schema.isGreaterThanOrEqualTo(0)),
-});
-export type CommandSpec = Schema.Schema.Type<typeof CommandSpecSchema>;
+export { CommandSpecSchema, FlagSpecSchema } from "./contract.ts";
+export type { CommandSpec, FlagSpec } from "./contract.ts";
 
 export interface CommandInput<Flags extends object> {
   readonly flags?: Flags;
@@ -106,28 +94,40 @@ export const CliExecutionProbe = Context.Reference<() => Effect.Effect<void>>(
   { defaultValue: () => () => Effect.void },
 );
 
-export class DockerCliInputError extends Data.TaggedError("DockerCliInputError")<{
-  readonly option: string;
-  readonly message: string;
-}> {}
+export class DockerCliInputError extends Schema.TaggedError<DockerCliInputError>()(
+  "DockerCliInputError",
+  {
+    option: Schema.String,
+    message: Schema.String,
+  },
+) {}
 
-export class DockerCliExitError extends Data.TaggedError("DockerCliExitError")<{
-  readonly command: string;
-  readonly exitCode: number;
-  /** Docker's stderr can echo secrets: explicit opt-in is required to inspect it. */
-  readonly stderr: Redacted.Redacted<string>;
-}> {}
+export class DockerCliExitError extends Schema.TaggedError<DockerCliExitError>()(
+  "DockerCliExitError",
+  {
+    command: Schema.String,
+    exitCode: Schema.Int,
+    /** Docker stderr may contain credentials; never serialize its contents. */
+    stderr: Schema.Redacted(Schema.String),
+  },
+) {}
 
-export class DockerCliDecodeError extends Data.TaggedError("DockerCliDecodeError")<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
+export class DockerCliDecodeError extends Schema.TaggedError<DockerCliDecodeError>()(
+  "DockerCliDecodeError",
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.Unknown),
+  },
+) {}
 
-export class DockerCliUnsupportedError extends Data.TaggedError("DockerCliUnsupportedError")<{
-  readonly command: string;
-  readonly reason: "command" | "flag";
-  readonly flag?: string;
-}> {}
+export class DockerCliUnsupportedError extends Schema.TaggedError<DockerCliUnsupportedError>()(
+  "DockerCliUnsupportedError",
+  {
+    command: Schema.String,
+    reason: Schema.Literals(["command", "flag"]),
+    flag: Schema.optional(Schema.String),
+  },
+) {}
 
 export const DockerCliCapabilitySchema = Schema.Struct({
   command: Schema.String,
@@ -135,6 +135,30 @@ export const DockerCliCapabilitySchema = Schema.Struct({
   flags: Schema.Array(Schema.String),
 });
 export type DockerCliCapability = Schema.Schema.Type<typeof DockerCliCapabilitySchema>;
+
+/**
+ * Serialize decoded flag values without treating user input as shell syntax.
+ * Docker uses one argument per value, and map values require stable key order
+ * for deterministic plans and diagnostics.
+ */
+const flagArguments = (name: string, value: unknown): ReadonlyArray<string> =>
+  Match.value(value).pipe(
+    Match.when(
+      (value: unknown): value is boolean => typeof value === "boolean",
+      (value) => [value ? name : `${name}=false`],
+    ),
+    Match.when(A.isArray, (values) => A.flatMap(values, (value) => [name, String(value)])),
+    Match.when(
+      (value: unknown): value is Record<string, unknown> =>
+        typeof value === "object" && value !== null,
+      (record) =>
+        A.flatMap(
+          A.sortWith(R.toEntries(record), ([key]) => key, Order.String),
+          ([key, value]) => [name, `${key}=${String(value)}`],
+        ),
+    ),
+    Match.orElse((value) => [name, String(value)]),
+  );
 
 /**
  * Serialize validated flag values. False must be explicit: a bare boolean
@@ -156,43 +180,31 @@ export const encodeArgs = (
         }),
       );
     }
-    const argv: string[] = [];
-    if (context !== undefined) {
-      if (context.trim() === "") {
-        return yield* Effect.fail(
-          new DockerCliInputError({ option: "context", message: "Context cannot be empty" }),
-        );
-      }
-      argv.push("--context", context);
+    if (context !== undefined && context.trim() === "") {
+      return yield* Effect.fail(
+        new DockerCliInputError({ option: "context", message: "Context cannot be empty" }),
+      );
     }
-    argv.push(...spec.command);
 
-    for (const [field, value] of Object.entries(flags)) {
-      if (value === undefined) continue;
+    const flagGroups = yield* Effect.forEach(R.toEntries(flags), ([field, value]) => {
+      if (value === undefined) return Effect.succeed(A.empty<string>());
       const option = spec.flags[field];
       if (option === undefined) {
-        return yield* Effect.fail(
+        return Effect.fail(
           new DockerCliInputError({ option: field, message: "Unknown Docker CLI flag" }),
         );
       }
-      const name = `--${option.name}`;
-      if (option.type === "bool") {
-        argv.push(value === true ? name : `${name}=false`);
-      } else if (Array.isArray(value)) {
-        for (const entry of value) argv.push(name, String(entry));
-      } else if (typeof value === "object" && value !== null) {
-        for (const [key, entry] of Object.entries(value).sort(([a], [b]) => a.localeCompare(b))) {
-          argv.push(name, `${key}=${String(entry)}`);
-        }
-      } else {
-        argv.push(name, String(value));
-      }
-    }
+      return Effect.succeed(flagArguments(`--${option.name}`, value));
+    });
 
     // Explicitly delimit positional arguments, including names beginning
     // with "--", so user input never becomes an unexpected option.
-    if (args.length > 0) argv.push("--", ...args);
-    return argv;
+    return [
+      ...(context === undefined ? [] : ["--context", context]),
+      ...spec.command,
+      ...A.flatten(flagGroups),
+      ...(args.length === 0 ? [] : ["--", ...args]),
+    ];
   });
 
 const spawn = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =>
@@ -267,22 +279,31 @@ export const probeCommand = (
       },
     );
     const output = `${result.stdout}\n${result.stderr}`;
-    const usage = output.match(/(?:^|\r?\n)\s*Usage:\s*([^\r\n]+)/)?.[1]?.trim();
-    const advertised = usage?.match(/^docker(?:\s+[a-z][a-z0-9-]*)*/)?.[0];
+    const advertised = Option.flatMap(
+      Option.fromNullishOr(output.match(/(?:^|\r?\n)\s*Usage:\s*([^\r\n]+)/)?.[1]),
+      (usage) => Option.fromNullishOr(usage.trim().match(/^docker(?:\s+[a-z][a-z0-9-]*)*/)?.[0]),
+    );
     // A Go/Cobra alias can be delegated to a plugin: `docker build` and
     // `docker builder build` display the canonical `docker buildx build` help.
     // A missing command displays only its parent's help; that fails because
     // the last executable subcommand no longer matches the requested one.
     const available =
       result.exitCode === 0 &&
-      advertised !== undefined &&
-      (advertised === command ||
-        (advertised !== "docker" && advertised.split(" ").at(-1) === spec.command.at(-1)));
-    const flags = Array.from(
-      new Set(
-        Array.from(
-          output.matchAll(/^\s*(?:-[a-zA-Z0-9],\s*)?--([a-z][a-z0-9-]*)(?=\s|=|$)/gm),
-          (match) => match[1]!,
+      Option.match(advertised, {
+        onNone: () => false,
+        onSome: (advertised) =>
+          advertised === command ||
+          (advertised !== "docker" &&
+            Option.getOrUndefined(A.last(Str.split(advertised, " "))) ===
+              Option.getOrUndefined(A.last(spec.command))),
+      });
+    const flags = A.dedupe(
+      A.getSomes(
+        A.map(
+          A.fromIterable(
+            output.matchAll(/^\s*(?:-[a-zA-Z0-9],\s*)?--([a-z][a-z0-9-]*)(?=\s|=|$)/gm),
+          ),
+          (match) => Option.fromNullishOr(match[1]),
         ),
       ),
     );
@@ -308,6 +329,21 @@ export const runRawBinary = (argv: ReadonlyArray<string>, options?: CommandExecu
     } satisfies BinaryCommandResult;
   }).pipe(Effect.scoped);
 
+/** Both text and binary CLI modes share the same typed exit contract. */
+const requireSuccess = <A extends { readonly exitCode: number; readonly stderr: string }>(
+  result: A,
+): Effect.Effect<A, DockerCliExitError> =>
+  result.exitCode === 0
+    ? Effect.succeed(result)
+    : Effect.fail(
+        new DockerCliExitError({
+          // Arguments may contain credentials; never include them in errors.
+          command: "docker",
+          exitCode: result.exitCode,
+          stderr: Redacted.make(result.stderr),
+        }),
+      );
+
 /** Collects command output in memory; use runStream for long-running operations. */
 export const run = (
   argv: ReadonlyArray<string>,
@@ -316,90 +352,34 @@ export const run = (
   CommandResult,
   DockerCliExitError | PlatformError.PlatformError,
   ChildProcessSpawner.ChildProcessSpawner
-> =>
-  Effect.gen(function* () {
-    const result = yield* runRaw(argv, options);
-    if (result.exitCode !== 0) {
-      return yield* Effect.fail(
-        new DockerCliExitError({
-          // Raw argv may include credentials. Do not place any argument into
-          // diagnostics; the generated command name is known to invoke().
-          command: "docker",
-          exitCode: result.exitCode,
-          stderr: Redacted.make(result.stderr),
-        }),
-      );
-    }
-    return result;
-  });
+> => Effect.flatMap(runRaw(argv, options), requireSuccess);
 
 /** Execute commands that produce archives or other opaque binary output. */
 export const runBinary = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =>
-  Effect.flatMap(runRawBinary(argv, options), (result) =>
-    result.exitCode === 0
-      ? Effect.succeed(result)
-      : Effect.fail(
-          new DockerCliExitError({
-            command: "docker",
-            exitCode: result.exitCode,
-            stderr: Redacted.make(result.stderr),
-          }),
-        ),
-  );
+  Effect.flatMap(runRawBinary(argv, options), requireSuccess);
 
 /**
- * Stream stdout/stderr as they arrive without buffering a build's full log.
- * The Effect Scope owns the process, including cancellation and cleanup.
+ * Own the process and stderr tail once for both output modes. Each caller
+ * independently decodes stdout and stderr, preserving UTF-8 boundaries while
+ * retaining binary output byte-for-byte.
  */
-export const runStream = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =>
-  Stream.scoped(
-    Stream.unwrap(
-      Effect.gen(function* () {
-        const child = yield* spawn(argv, options);
-        const stderrTail = yield* Ref.make("");
-        const stdout = child.stdout.pipe(
-          Stream.decodeText,
-          Stream.map((text): CommandChunk => ({ channel: "stdout", text })),
-        );
-        const stderr = child.stderr.pipe(
-          Stream.decodeText,
-          Stream.tap((text) => Ref.update(stderrTail, (tail) => (tail + text).slice(-8192))),
-          Stream.map((text): CommandChunk => ({ channel: "stderr", text })),
-        );
-        const checkExit = Stream.fromEffectDrain(
-          Effect.gen(function* () {
-            const exitCode = yield* child.exitCode;
-            if (exitCode !== 0) {
-              return yield* Effect.fail(
-                new DockerCliExitError({
-                  command: "docker",
-                  exitCode,
-                  stderr: Redacted.make(yield* Ref.get(stderrTail)),
-                }),
-              );
-            }
-          }),
-        );
-        return Stream.concat(Stream.merge(stdout, stderr), checkExit);
-      }),
-    ),
-  );
-
-/** Stream unmodified byte chunks, preserving binary CLI stdout and stderr. */
-export const runBinaryStream = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =>
+const streamCommand = <A>(
+  argv: ReadonlyArray<string>,
+  options: CommandExecutionOptions | undefined,
+  channels: (
+    stdout: Stream.Stream<Uint8Array, PlatformError.PlatformError>,
+    stderr: Stream.Stream<Uint8Array, PlatformError.PlatformError>,
+  ) => Stream.Stream<A, PlatformError.PlatformError>,
+) =>
   Stream.scoped(
     Stream.unwrap(
       Effect.gen(function* () {
         const child = yield* spawn(argv, options);
         const stderrTail = yield* Ref.make(new Uint8Array());
-        const stdout = child.stdout.pipe(
-          Stream.map((bytes): CommandByteChunk => ({ channel: "stdout", bytes })),
-        );
         const stderr = child.stderr.pipe(
           Stream.tap((bytes) =>
             Ref.update(stderrTail, (tail) => Bytes.concat([tail, bytes]).slice(-8192)),
           ),
-          Stream.map((bytes): CommandByteChunk => ({ channel: "stderr", bytes })),
         );
         const checkExit = Stream.fromEffectDrain(
           Effect.gen(function* () {
@@ -415,8 +395,37 @@ export const runBinaryStream = (argv: ReadonlyArray<string>, options?: CommandEx
             }
           }),
         );
-        return Stream.concat(Stream.merge(stdout, stderr), checkExit);
+        return Stream.concat(channels(child.stdout, stderr), checkExit);
       }),
+    ),
+  );
+
+/**
+ * Stream stdout/stderr as they arrive without buffering a build's full log.
+ * The Effect Scope owns the process, including cancellation and cleanup.
+ */
+export const runStream = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =>
+  streamCommand(argv, options, (stdout, stderr) =>
+    Stream.merge(
+      stdout.pipe(
+        Stream.decodeText,
+        options?.stdoutTap ?? ((stream) => stream),
+        Stream.map((text): CommandChunk => ({ channel: "stdout", text })),
+      ),
+      stderr.pipe(
+        Stream.decodeText,
+        options?.stderrTap ?? ((stream) => stream),
+        Stream.map((text): CommandChunk => ({ channel: "stderr", text })),
+      ),
+    ),
+  );
+
+/** Stream unmodified byte chunks, preserving binary CLI stdout and stderr. */
+export const runBinaryStream = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =>
+  streamCommand(argv, options, (stdout, stderr) =>
+    Stream.merge(
+      stdout.pipe(Stream.map((bytes): CommandByteChunk => ({ channel: "stdout", bytes }))),
+      stderr.pipe(Stream.map((bytes): CommandByteChunk => ({ channel: "stderr", bytes }))),
     ),
   );
 
@@ -458,18 +467,23 @@ const commandArgs = <Input extends CommandInput<object>>(
           }),
         );
       }
-      for (const [property, value] of Object.entries(decoded.flags ?? {})) {
-        if (value === undefined) continue;
-        const name = spec.flags[property]?.name;
-        if (name !== undefined && !capability.flags.includes(name)) {
-          return yield* Effect.fail(
-            new DockerCliUnsupportedError({
-              command: capability.command,
-              reason: "flag",
-              flag: name,
-            }),
-          );
-        }
+      const unsupported = A.getSomes(
+        A.map(R.toEntries(decoded.flags ?? {}), ([property, value]) => {
+          const name = spec.flags[property]?.name;
+          return value !== undefined && name !== undefined && !capability.flags.includes(name)
+            ? Option.some(name)
+            : Option.none();
+        }),
+      );
+      const unsupportedFlag = A.head(unsupported);
+      if (Option.isSome(unsupportedFlag)) {
+        return yield* Effect.fail(
+          new DockerCliUnsupportedError({
+            command: capability.command,
+            reason: "flag",
+            flag: unsupportedFlag.value,
+          }),
+        );
       }
     }
     return argv;
@@ -528,13 +542,17 @@ export const parseJson = (output: CommandResult) =>
 /** Decode a Docker CLI JSON Lines output with the caller's explicit schema. */
 export const decodeJsonLines = <A>(output: CommandResult, schema: Schema.Schema<A>) =>
   Effect.forEach(
-    output.stdout.split(/\r?\n/).filter((line) => line.trim() !== ""),
-    (line, index) =>
+    A.getSomes(
+      A.map(Str.split(output.stdout, /\r?\n/), (line, index) =>
+        Str.trim(line) === "" ? Option.none() : Option.some({ line, lineNumber: index + 1 }),
+      ),
+    ),
+    ({ line, lineNumber }) =>
       Schema.decodeUnknownEffect(Schema.fromJsonString(schema))(line).pipe(
         Effect.mapError(
           () =>
             new DockerCliDecodeError({
-              message: `Invalid Docker CLI JSON or schema at line ${index + 1}`,
+              message: `Invalid Docker CLI JSON or schema at line ${lineNumber}`,
             }),
         ),
       ),
