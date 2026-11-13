@@ -193,13 +193,27 @@ conversion and `packages/docker/src/services/docker.ts` generated types.
 
 ## Development
 
+**Reviewing the CLI PoC branch:** The generated SDK source is committed and
+works without checking out any specs. The existing
+`distilled-mirror/spec-mirror-docker` gitlink does **not yet** include the new
+CLI JSON catalog; that mirror is managed by Distilled's spec-update workflow.
+Until its update is published and pinned, regenerate using the repository's
+supported, gitignored local mirror instead:
+
 ```sh
 pnpm specs:local docker  # official mirror workflow, in a gitignored local tree
 DISTILLED_SPECS_LOCAL=1 pnpm --filter @distilled.cloud/docker cli:generate
-pnpm generate docker                                  # Engine + CLI generation
+# Optionally regenerate Engine and CLI together:
+DISTILLED_SPECS_LOCAL=1 pnpm generate docker
 pnpm vitest run packages/docker/test/cli.test.ts
 pnpm typecheck:ci
 ```
+
+The generated `dockerCliSourceRevisions` identifies the exact upstream
+Docker Docs and Compose revisions used for this PoC. A fresh local mirror
+refresh may select newer upstream revisions; publishing the canonical CLI
+descriptors in the official mirror is the remaining release-time integration
+step. No locally fetched spec files belong in this repository's commits.
 
 Real mutation tests are **opt-in** and require an independently verified
 Docker-in-Docker daemon bound to loopback, with `alpine:3.22` preloaded:
