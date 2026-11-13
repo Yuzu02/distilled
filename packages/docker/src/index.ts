@@ -5,6 +5,9 @@
  * `scripts/convert.ts` converts from the OpenAPI spec. Everything else in this
  * folder is hand-written.
  *
+ * The package root preserves the original Engine SDK. Docker CLI contracts
+ * are available explicitly through `@distilled.cloud/docker/cli`.
+ *
  * @example
  * ```ts
  * import * as Docker from "@distilled.cloud/docker";
@@ -25,9 +28,6 @@ export { DockerProtocol, type DockerOpError, type DockerOpContext } from "./prot
 export { paginateCursor } from "./pagination.ts";
 export * as Retry from "./retry.ts";
 export * as Services from "./services/index.ts";
-// Operations (and their request/response types) are importable straight off
-// the package root. The service-local typed error classes shadow the
-// same-named shared ones from ./errors.ts -- the ops actually raise the
-// service-local classes.
+// Existing Engine operation names and response schemas remain unchanged.
 export * from "./services/docker.ts";
 export { BadRequest, Conflict, Forbidden, NotFound } from "./services/docker.ts";

@@ -21,6 +21,18 @@
       "distilled-lazy": "./lib/index.lazy.js",
       "default": "./lib/index.js"
     },
+    "./engine": {
+      "types": "./lib/index.d.ts",
+      "bun": "./src/index.ts",
+      "worker": "./src/index.ts",
+      "distilled-lazy": "./lib/index.lazy.js",
+      "default": "./lib/index.js"
+    },
+    "./cli": {
+      "types": "./lib/cli.d.ts",
+      "bun": "./src/cli.ts",
+      "default": "./lib/cli.js"
+    },
     "./Credentials": {
       "types": "./lib/credentials.d.ts",
       "bun": "./src/credentials.ts",
@@ -68,7 +80,9 @@
   "scripts": {
     "build": "tsrs -b",
     "convert": "node --conditions=bun scripts/convert.ts",
-    "generate": "node --conditions=bun scripts/generate.ts",
+    "generate": "node --conditions=bun scripts/generate.ts && node scripts/generate-cli.ts && pnpm exec oxfmt src/cli/generated.ts",
+    "cli:generate": "node scripts/generate-cli.ts && pnpm exec oxfmt src/cli/generated.ts",
+    "cli:doctor": "pnpm build && node scripts/cli-doctor.ts",
     "typecheck": "tsrs -p tsconfig.json",
     "specs:fetch": "git submodule update --force --init --depth=1 specs/spec-mirror-docker",
     "specs:update": "git submodule update --remote --force --depth=1 specs/spec-mirror-docker"
@@ -78,13 +92,14 @@
   },
   "devDependencies": {
     "@distilled.cloud/dev": "workspace:*",
+    "@effect/platform-node": "catalog:",
     "@types/node": "catalog:"
   },
   "peerDependencies": {
     "effect": "catalog:"
   },
   "distilled": {
-    "generatedAt": "2026-11-10",
+    "generatedAt": "2026-11-12",
     "specUpdatedAt": "2026-10-30"
   }
 }
