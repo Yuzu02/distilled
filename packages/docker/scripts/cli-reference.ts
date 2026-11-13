@@ -4,45 +4,10 @@
  * only the pinned Schema-decoded contract, never free-form YAML.
  */
 import * as Schema from "effect/Schema";
+import { CliValueType as DockerFlagValueType } from "../src/cli/contract.ts";
 
 /** All value types emitted by Docker's official command reference. */
-export const CliValueType = Schema.Literals([
-  "bool",
-  "bytes",
-  "command",
-  "config",
-  "credential-spec",
-  "decimal",
-  "duration",
-  "external-ca",
-  "filter",
-  "float",
-  "gpu-request",
-  "int",
-  "int64",
-  "ip",
-  "ipNetSlice",
-  "ipSlice",
-  "list",
-  "map",
-  "mount",
-  "network",
-  "node-addr",
-  "pem-file",
-  "port",
-  "pref",
-  "secret",
-  "string",
-  "stringArray",
-  "stringSlice",
-  "stringToString",
-  "uint",
-  "uint16",
-  "uint32",
-  "uint64",
-  "ulimit",
-  "umask",
-]);
+export const CliValueType = DockerFlagValueType;
 export type CliValueType = Schema.Schema.Type<typeof CliValueType>;
 
 const CliOption = Schema.Struct({

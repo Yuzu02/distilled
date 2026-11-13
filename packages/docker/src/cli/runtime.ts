@@ -29,13 +29,16 @@ import type { CommandSpec } from "./contract.ts";
 export { CommandSpecSchema, FlagSpecSchema } from "./contract.ts";
 export type { CommandSpec, FlagSpec } from "./contract.ts";
 
-export interface CommandInput<Flags extends object> {
+export const CommandInputBaseSchema = Schema.Struct({
+  args: Schema.optional(Schema.Array(Schema.String)),
+  context: Schema.optional(Schema.String),
+});
+/** The generated operation supplies its own Schema-validated flag structure. */
+export type CommandInput<Flags extends object> = Schema.Schema.Type<
+  typeof CommandInputBaseSchema
+> & {
   readonly flags?: Flags;
-  /** Positional arguments, in the order documented by Docker. */
-  readonly args?: ReadonlyArray<string>;
-  /** The Docker context, passed as a global CLI flag. */
-  readonly context?: string;
-}
+};
 
 export const CommandResultSchema = Schema.Struct({
   stdout: Schema.String,
@@ -63,13 +66,20 @@ export const CommandByteChunkSchema = Schema.Struct({
 });
 export type CommandByteChunk = Schema.Schema.Type<typeof CommandByteChunkSchema>;
 
-/** Effect-native execution settings for a single Docker CLI invocation. */
-export interface CommandExecutionOptions {
-  readonly bin?: string;
-  /** Preflight command/flag availability against the installed CLI; opt-in to avoid extra processes. */
-  readonly checkSupport?: boolean;
-  /** Passed directly to ChildProcess, which preserves Effect Redacted values. */
-  readonly env?: Readonly<Record<string, string | Redacted.Redacted<string>>>;
+const CliTransportSettingsSchema = Schema.Struct({
+  bin: Schema.optional(Schema.String),
+  env: Schema.optional(
+    Schema.Record(Schema.String, Schema.Union([Schema.String, Schema.Redacted(Schema.String)])),
+  ),
+});
+
+/** Serializable CLI invocation settings; process streams remain Effect values. */
+export const CommandExecutionOptionsSchema = Schema.Struct({
+  ...CliTransportSettingsSchema.fields,
+  checkSupport: Schema.optional(Schema.Boolean),
+});
+
+export type CommandExecutionOptions = Schema.Schema.Type<typeof CommandExecutionOptionsSchema> & {
   /** Allows docker login --password-stdin, docker secret create, and similar commands. */
   readonly stdin?: Stream.Stream<Uint8Array>;
   /** Preserve caller-defined streaming log/observability behavior. */
@@ -79,14 +89,17 @@ export interface CommandExecutionOptions {
   readonly stderrTap?: (
     stream: Stream.Stream<string, PlatformError.PlatformError>,
   ) => Stream.Stream<string, PlatformError.PlatformError>;
-}
+};
 
 /** Override the executable (e.g. podman) or ambient environment per fiber. */
-export const CliSettings = Context.Reference<{
-  readonly bin?: string;
-  readonly context?: string;
-  readonly env?: Readonly<Record<string, string | Redacted.Redacted<string>>>;
-}>("distilled/Docker/CliSettings", { defaultValue: () => ({}) });
+export const CliSettingsSchema = Schema.Struct({
+  ...CliTransportSettingsSchema.fields,
+  context: Schema.optional(Schema.String),
+});
+export const CliSettings = Context.Reference<Schema.Schema.Type<typeof CliSettingsSchema>>(
+  "distilled/Docker/CliSettings",
+  { defaultValue: () => ({}) },
+);
 
 /** Testable, fiber-local execution probe; emits no arguments or secret values. */
 export const CliExecutionProbe = Context.Reference<() => Effect.Effect<void>>(
@@ -227,21 +240,20 @@ const spawn = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =
     });
   });
 
-/**
- * Raw process result, including nonzero exit codes. A provider can translate
- * the exit status to its own typed errors while sharing this single transport.
- */
-export const runRaw = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =>
+/** Own one process and concurrently drain stdout, stderr and its exit status. */
+const collectCommand = <A>(
+  argv: ReadonlyArray<string>,
+  options: CommandExecutionOptions | undefined,
+  stdout: (
+    bytes: Stream.Stream<Uint8Array, PlatformError.PlatformError>,
+  ) => Effect.Effect<A, PlatformError.PlatformError>,
+) =>
   Effect.gen(function* () {
     const child = yield* spawn(argv, options);
     return yield* Effect.all(
       {
         exitCode: child.exitCode,
-        stdout: child.stdout.pipe(
-          Stream.decodeText,
-          options?.stdoutTap ?? ((stream) => stream),
-          Stream.mkString,
-        ),
+        stdout: stdout(child.stdout),
         stderr: child.stderr.pipe(
           Stream.decodeText,
           options?.stderrTap ?? ((stream) => stream),
@@ -251,6 +263,15 @@ export const runRaw = (argv: ReadonlyArray<string>, options?: CommandExecutionOp
       { concurrency: 3 },
     );
   }).pipe(Effect.scoped);
+
+/**
+ * Raw process result, including nonzero exit codes. A provider can translate
+ * the exit status to its own typed errors while sharing this single transport.
+ */
+export const runRaw = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =>
+  collectCommand(argv, options, (bytes) =>
+    bytes.pipe(Stream.decodeText, options?.stdoutTap ?? ((stream) => stream), Stream.mkString),
+  );
 
 /**
  * Safely query capabilities of a particular Docker/Buildx/Compose executable.
@@ -312,22 +333,7 @@ export const probeCommand = (
 
 /** Collect binary stdout without UTF-8 conversion. */
 export const runRawBinary = (argv: ReadonlyArray<string>, options?: CommandExecutionOptions) =>
-  Effect.gen(function* () {
-    const child = yield* spawn(argv, options);
-    const result = yield* Effect.all(
-      {
-        exitCode: child.exitCode,
-        stdout: Stream.runCollect(child.stdout),
-        stderr: child.stderr.pipe(Stream.decodeText, Stream.mkString),
-      },
-      { concurrency: 3 },
-    );
-    return {
-      stdout: Bytes.concat(result.stdout),
-      stderr: result.stderr,
-      exitCode: result.exitCode,
-    } satisfies BinaryCommandResult;
-  }).pipe(Effect.scoped);
+  collectCommand(argv, options, (bytes) => Effect.map(Stream.runCollect(bytes), Bytes.concat));
 
 /** Both text and binary CLI modes share the same typed exit contract. */
 const requireSuccess = <A extends { readonly exitCode: number; readonly stderr: string }>(
@@ -385,11 +391,14 @@ const streamCommand = <A>(
           Effect.gen(function* () {
             const exitCode = yield* child.exitCode;
             if (exitCode !== 0) {
+              const stderrText = yield* Ref.get(stderrTail).pipe(
+                Effect.flatMap((bytes) => Stream.mkString(Stream.decodeText(Stream.make(bytes)))),
+              );
               return yield* Effect.fail(
                 new DockerCliExitError({
                   command: "docker",
                   exitCode,
-                  stderr: Redacted.make(new TextDecoder().decode(yield* Ref.get(stderrTail))),
+                  stderr: Redacted.make(stderrText),
                 }),
               );
             }

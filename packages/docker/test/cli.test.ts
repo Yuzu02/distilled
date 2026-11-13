@@ -46,6 +46,9 @@ describe("Docker CLI Effect SDK", () => {
     for (const [, spec] of specs) {
       expect(() => Schema.decodeUnknownSync(Cli.CommandSpecSchema)(spec)).not.toThrow();
     }
+    expect(() =>
+      Schema.decodeUnknownSync(Cli.FlagSpecSchema)({ name: "future-flag", type: "unrecognized" }),
+    ).toThrow();
     expect(typeof Generated.dockerRun).toBe("function");
     expect(typeof Generated.dockerRunStream).toBe("function");
     expect(Generated.containerCreateSpec.usage).toContain("IMAGE");
@@ -56,38 +59,45 @@ describe("Docker CLI Effect SDK", () => {
   });
 
   it("infers required positionals without counting alternatives more than once", () => {
+    const arity = (usage: string, command: string) => Effect.runSync(minimumArgs(usage, command));
     expect(
-      minimumArgs(
+      arity(
         "docker container create [OPTIONS] IMAGE [COMMAND] [ARG...]",
         "docker container create",
       ),
     ).toBe(1);
     expect(
-      minimumArgs("docker network connect [OPTIONS] NETWORK CONTAINER", "docker network connect"),
+      arity("docker network connect [OPTIONS] NETWORK CONTAINER", "docker network connect"),
     ).toBe(2);
-    expect(minimumArgs("docker compose up [OPTIONS] [SERVICE...]", "docker compose up")).toBe(0);
-    expect(minimumArgs("docker buildx build [OPTIONS] PATH | URL | -", "docker buildx build")).toBe(
-      1,
-    );
+    expect(arity("docker compose up [OPTIONS] [SERVICE...]", "docker compose up")).toBe(0);
+    expect(arity("docker buildx build [OPTIONS] PATH | URL | -", "docker buildx build")).toBe(1);
     expect(
-      minimumArgs("docker image tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]", "docker image tag"),
+      arity("docker image tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]", "docker image tag"),
     ).toBe(2);
     expect(
-      minimumArgs("docker swarm join-token [OPTIONS] (worker|manager)", "docker swarm join-token"),
+      arity("docker swarm join-token [OPTIONS] (worker|manager)", "docker swarm join-token"),
     ).toBe(1);
-    expect(minimumArgs("docker buildx policy test <path>", "docker buildx policy test")).toBe(1);
+    expect(arity("docker buildx policy test <path>", "docker buildx policy test")).toBe(1);
     expect(
-      minimumArgs(
+      arity(
         "docker compose cp [OPTIONS] SERVICE:SRC_PATH DEST_PATH|-\n\tdocker compose cp [OPTIONS] SRC_PATH|- SERVICE:DEST_PATH",
         "docker compose cp",
       ),
     ).toBe(2);
     expect(
-      minimumArgs(
+      arity(
         "docker container cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-\n\tdocker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH",
         "docker container cp",
       ),
     ).toBe(2);
+    expect(
+      Effect.runSync(
+        Effect.flip(minimumArgs("docker create [OPTIONS] NAME", "docker container create")),
+      ),
+    ).toMatchObject({ _tag: "DockerCliUsageError", reason: "unknown-command" });
+    expect(
+      Effect.runSync(Effect.flip(minimumArgs("docker compose up [OPTIONS", "docker compose up"))),
+    ).toMatchObject({ _tag: "DockerCliUsageError", reason: "unbalanced-brackets" });
   });
 
   it("rejects fractional, negative unsigned and out-of-range CLI numeric flags", () => {
@@ -339,6 +349,30 @@ describe("Docker CLI Effect SDK", () => {
       ),
     );
     expect(Array.from(chunks).flatMap(({ bytes }) => [...bytes])).toEqual([0, 255, 13, 10]);
+
+    // The shared collector must drain binary stdout and still expose text
+    // stderr to Effect observers without decoding or modifying binary bytes.
+    const observed = await Effect.runPromise(
+      Effect.gen(function* () {
+        const warnings = yield* Ref.make<ReadonlyArray<string>>([]);
+        const collected = yield* Cli.runRawBinary(
+          [
+            "-e",
+            "process.stdout.write(Buffer.from([0,255])); process.stderr.write('binary-warning')",
+          ],
+          {
+            bin: process.execPath,
+            stderrTap: Stream.tap((text) =>
+              Ref.update(warnings, (messages) => [...messages, text]),
+            ),
+          },
+        );
+        return { collected, warnings: yield* Ref.get(warnings) };
+      }).pipe(Effect.provide(NodeServices.layer)),
+    );
+    expect(Array.from(observed.collected.stdout)).toEqual([0, 255]);
+    expect(observed.collected.stderr).toBe("binary-warning");
+    expect(observed.warnings).toContain("binary-warning");
   });
 
   it("does not include caller-provided argv values in typed process errors", async () => {

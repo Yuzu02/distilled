@@ -82,9 +82,9 @@ export const BuildFlags = Schema.Struct({
   compress: Schema.optional(Schema.Boolean),
   cpuPeriod: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuQuota: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
+  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpusetCpus: Schema.optional(Schema.String),
   cpusetMems: Schema.optional(Schema.String),
-  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   file: Schema.optional(Schema.String),
   forceRm: Schema.optional(Schema.Boolean),
   iidfile: Schema.optional(Schema.String),
@@ -152,6 +152,13 @@ export const buildSpec = {
       defaultValue: "0",
       description: "Limit the CPU CFS (Completely Fair Scheduler) quota",
     },
+    cpuShares: {
+      name: "cpu-shares",
+      type: "int64",
+      shorthand: "c",
+      defaultValue: "0",
+      description: "CPU shares (relative weight)",
+    },
     cpusetCpus: {
       name: "cpuset-cpus",
       type: "string",
@@ -161,13 +168,6 @@ export const buildSpec = {
       name: "cpuset-mems",
       type: "string",
       description: "MEMs in which to allow execution (0-3, 0,1)",
-    },
-    cpuShares: {
-      name: "cpu-shares",
-      type: "int64",
-      shorthand: "c",
-      defaultValue: "0",
-      description: "CPU shares (relative weight)",
     },
     file: {
       name: "file",
@@ -301,9 +301,9 @@ export const BuilderBuildFlags = Schema.Struct({
   compress: Schema.optional(Schema.Boolean),
   cpuPeriod: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuQuota: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
+  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpusetCpus: Schema.optional(Schema.String),
   cpusetMems: Schema.optional(Schema.String),
-  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   file: Schema.optional(Schema.String),
   forceRm: Schema.optional(Schema.Boolean),
   iidfile: Schema.optional(Schema.String),
@@ -371,6 +371,13 @@ export const builderBuildSpec = {
       defaultValue: "0",
       description: "Limit the CPU CFS (Completely Fair Scheduler) quota",
     },
+    cpuShares: {
+      name: "cpu-shares",
+      type: "int64",
+      shorthand: "c",
+      defaultValue: "0",
+      description: "CPU shares (relative weight)",
+    },
     cpusetCpus: {
       name: "cpuset-cpus",
       type: "string",
@@ -380,13 +387,6 @@ export const builderBuildSpec = {
       name: "cpuset-mems",
       type: "string",
       description: "MEMs in which to allow execution (0-3, 0,1)",
-    },
-    cpuShares: {
-      name: "cpu-shares",
-      type: "int64",
-      shorthand: "c",
-      defaultValue: "0",
-      description: "CPU shares (relative weight)",
     },
     file: {
       name: "file",
@@ -4583,8 +4583,7 @@ export const composeConvertStream = (
   options?: CommandExecutionOptions,
 ) => invokeStream(composeConvertSpec, ComposeConvertInputSchema, input, options);
 
-/** Flags for docker compose cp (docker compose cp [OPTIONS] SERVICE:SRC_PATH DEST_PATH|-
-	docker compose cp [OPTIONS] SRC_PATH|- SERVICE:DEST_PATH). */
+/** Flags for docker compose cp (docker compose cp [OPTIONS] SERVICE:SRC_PATH DEST_PATH|- docker compose cp [OPTIONS] SRC_PATH|- SERVICE:DEST_PATH). */
 export const ComposeCpFlags = Schema.Struct({
   all: Schema.optional(Schema.Boolean),
   archive: Schema.optional(Schema.Boolean),
@@ -6808,8 +6807,7 @@ export const containerCommitStream = (
   options?: CommandExecutionOptions,
 ) => invokeStream(containerCommitSpec, ContainerCommitInputSchema, input, options);
 
-/** Flags for docker container cp (docker container cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
-	docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH). */
+/** Flags for docker container cp (docker container cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|- docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH). */
 export const ContainerCpFlags = Schema.Struct({
   archive: Schema.optional(Schema.Boolean),
   followLink: Schema.optional(Schema.Boolean),
@@ -6867,8 +6865,8 @@ export const ContainerCreateFlags = Schema.Struct({
   blkioWeightDevice: Schema.optional(Schema.Array(Schema.String)),
   capAdd: Schema.optional(Schema.Array(Schema.String)),
   capDrop: Schema.optional(Schema.Array(Schema.String)),
-  cgroupns: Schema.optional(Schema.String),
   cgroupParent: Schema.optional(Schema.String),
+  cgroupns: Schema.optional(Schema.String),
   cidfile: Schema.optional(Schema.String),
   cpuCount: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuPercent: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
@@ -6876,10 +6874,10 @@ export const ContainerCreateFlags = Schema.Struct({
   cpuQuota: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtPeriod: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtRuntime: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
+  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpus: Schema.optional(Schema.Finite),
   cpusetCpus: Schema.optional(Schema.String),
   cpusetMems: Schema.optional(Schema.String),
-  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   device: Schema.optional(Schema.Array(Schema.String)),
   deviceCgroupRule: Schema.optional(Schema.Array(Schema.String)),
   deviceReadBps: Schema.optional(Schema.Array(Schema.String)),
@@ -7007,17 +7005,17 @@ export const containerCreateSpec = {
     },
     capAdd: { name: "cap-add", type: "list", description: "Add Linux capabilities" },
     capDrop: { name: "cap-drop", type: "list", description: "Drop Linux capabilities" },
+    cgroupParent: {
+      name: "cgroup-parent",
+      type: "string",
+      description: "Optional parent cgroup for the container",
+    },
     cgroupns: {
       name: "cgroupns",
       type: "string",
       description:
         "Cgroup namespace to use (host|private)\n'host':    Run the container in the Docker host's cgroup namespace\n'private': Run the container in its own private cgroup namespace\n'':        Use the cgroup namespace as configured by the\n           default-cgroupns-mode option on the daemon (default)",
       minApiVersion: "1.41",
-    },
-    cgroupParent: {
-      name: "cgroup-parent",
-      type: "string",
-      description: "Optional parent cgroup for the container",
     },
     cidfile: { name: "cidfile", type: "string", description: "Write the container ID to the file" },
     cpuCount: {
@@ -7060,6 +7058,13 @@ export const containerCreateSpec = {
       description: "Limit CPU real-time runtime in microseconds",
       minApiVersion: "1.25",
     },
+    cpuShares: {
+      name: "cpu-shares",
+      type: "int64",
+      shorthand: "c",
+      defaultValue: "0",
+      description: "CPU shares (relative weight)",
+    },
     cpus: { name: "cpus", type: "decimal", description: "Number of CPUs", minApiVersion: "1.25" },
     cpusetCpus: {
       name: "cpuset-cpus",
@@ -7070,13 +7075,6 @@ export const containerCreateSpec = {
       name: "cpuset-mems",
       type: "string",
       description: "MEMs in which to allow execution (0-3, 0,1)",
-    },
-    cpuShares: {
-      name: "cpu-shares",
-      type: "int64",
-      shorthand: "c",
-      defaultValue: "0",
-      description: "CPU shares (relative weight)",
     },
     device: { name: "device", type: "list", description: "Add a host device to the container" },
     deviceCgroupRule: {
@@ -8023,8 +8021,8 @@ export const ContainerRunFlags = Schema.Struct({
   blkioWeightDevice: Schema.optional(Schema.Array(Schema.String)),
   capAdd: Schema.optional(Schema.Array(Schema.String)),
   capDrop: Schema.optional(Schema.Array(Schema.String)),
-  cgroupns: Schema.optional(Schema.String),
   cgroupParent: Schema.optional(Schema.String),
+  cgroupns: Schema.optional(Schema.String),
   cidfile: Schema.optional(Schema.String),
   cpuCount: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuPercent: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
@@ -8032,10 +8030,10 @@ export const ContainerRunFlags = Schema.Struct({
   cpuQuota: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtPeriod: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtRuntime: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
+  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpus: Schema.optional(Schema.Finite),
   cpusetCpus: Schema.optional(Schema.String),
   cpusetMems: Schema.optional(Schema.String),
-  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   detach: Schema.optional(Schema.Boolean),
   detachKeys: Schema.optional(Schema.String),
   device: Schema.optional(Schema.Array(Schema.String)),
@@ -8166,17 +8164,17 @@ export const containerRunSpec = {
     },
     capAdd: { name: "cap-add", type: "list", description: "Add Linux capabilities" },
     capDrop: { name: "cap-drop", type: "list", description: "Drop Linux capabilities" },
+    cgroupParent: {
+      name: "cgroup-parent",
+      type: "string",
+      description: "Optional parent cgroup for the container",
+    },
     cgroupns: {
       name: "cgroupns",
       type: "string",
       description:
         "Cgroup namespace to use (host|private)\n'host':    Run the container in the Docker host's cgroup namespace\n'private': Run the container in its own private cgroup namespace\n'':        Use the cgroup namespace as configured by the\n           default-cgroupns-mode option on the daemon (default)",
       minApiVersion: "1.41",
-    },
-    cgroupParent: {
-      name: "cgroup-parent",
-      type: "string",
-      description: "Optional parent cgroup for the container",
     },
     cidfile: { name: "cidfile", type: "string", description: "Write the container ID to the file" },
     cpuCount: {
@@ -8219,6 +8217,13 @@ export const containerRunSpec = {
       description: "Limit CPU real-time runtime in microseconds",
       minApiVersion: "1.25",
     },
+    cpuShares: {
+      name: "cpu-shares",
+      type: "int64",
+      shorthand: "c",
+      defaultValue: "0",
+      description: "CPU shares (relative weight)",
+    },
     cpus: { name: "cpus", type: "decimal", description: "Number of CPUs", minApiVersion: "1.25" },
     cpusetCpus: {
       name: "cpuset-cpus",
@@ -8229,13 +8234,6 @@ export const containerRunSpec = {
       name: "cpuset-mems",
       type: "string",
       description: "MEMs in which to allow execution (0-3, 0,1)",
-    },
-    cpuShares: {
-      name: "cpu-shares",
-      type: "int64",
-      shorthand: "c",
-      defaultValue: "0",
-      description: "CPU shares (relative weight)",
     },
     detach: {
       name: "detach",
@@ -8831,10 +8829,10 @@ export const ContainerUpdateFlags = Schema.Struct({
   cpuQuota: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtPeriod: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtRuntime: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
+  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpus: Schema.optional(Schema.Finite),
   cpusetCpus: Schema.optional(Schema.String),
   cpusetMems: Schema.optional(Schema.String),
-  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   memory: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   memoryReservation: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   memorySwap: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
@@ -8885,6 +8883,13 @@ export const containerUpdateSpec = {
       description: "Limit the CPU real-time runtime in microseconds",
       minApiVersion: "1.25",
     },
+    cpuShares: {
+      name: "cpu-shares",
+      type: "int64",
+      shorthand: "c",
+      defaultValue: "0",
+      description: "CPU shares (relative weight)",
+    },
     cpus: { name: "cpus", type: "decimal", description: "Number of CPUs", minApiVersion: "1.29" },
     cpusetCpus: {
       name: "cpuset-cpus",
@@ -8895,13 +8900,6 @@ export const containerUpdateSpec = {
       name: "cpuset-mems",
       type: "string",
       description: "MEMs in which to allow execution (0-3, 0,1)",
-    },
-    cpuShares: {
-      name: "cpu-shares",
-      type: "int64",
-      shorthand: "c",
-      defaultValue: "0",
-      description: "CPU shares (relative weight)",
     },
     memory: {
       name: "memory",
@@ -9238,8 +9236,7 @@ export const contextUse = (input: ContextUseInput, options?: CommandExecutionOpt
 export const contextUseStream = (input: ContextUseInput, options?: CommandExecutionOptions) =>
   invokeStream(contextUseSpec, ContextUseInputSchema, input, options);
 
-/** Flags for docker cp (docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
-	docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH). */
+/** Flags for docker cp (docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|- docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH). */
 export const CpFlags = Schema.Struct({
   archive: Schema.optional(Schema.Boolean),
   followLink: Schema.optional(Schema.Boolean),
@@ -9297,8 +9294,8 @@ export const CreateFlags = Schema.Struct({
   blkioWeightDevice: Schema.optional(Schema.Array(Schema.String)),
   capAdd: Schema.optional(Schema.Array(Schema.String)),
   capDrop: Schema.optional(Schema.Array(Schema.String)),
-  cgroupns: Schema.optional(Schema.String),
   cgroupParent: Schema.optional(Schema.String),
+  cgroupns: Schema.optional(Schema.String),
   cidfile: Schema.optional(Schema.String),
   cpuCount: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuPercent: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
@@ -9306,10 +9303,10 @@ export const CreateFlags = Schema.Struct({
   cpuQuota: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtPeriod: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtRuntime: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
+  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpus: Schema.optional(Schema.Finite),
   cpusetCpus: Schema.optional(Schema.String),
   cpusetMems: Schema.optional(Schema.String),
-  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   device: Schema.optional(Schema.Array(Schema.String)),
   deviceCgroupRule: Schema.optional(Schema.Array(Schema.String)),
   deviceReadBps: Schema.optional(Schema.Array(Schema.String)),
@@ -9437,17 +9434,17 @@ export const createSpec = {
     },
     capAdd: { name: "cap-add", type: "list", description: "Add Linux capabilities" },
     capDrop: { name: "cap-drop", type: "list", description: "Drop Linux capabilities" },
+    cgroupParent: {
+      name: "cgroup-parent",
+      type: "string",
+      description: "Optional parent cgroup for the container",
+    },
     cgroupns: {
       name: "cgroupns",
       type: "string",
       description:
         "Cgroup namespace to use (host|private)\n'host':    Run the container in the Docker host's cgroup namespace\n'private': Run the container in its own private cgroup namespace\n'':        Use the cgroup namespace as configured by the\n           default-cgroupns-mode option on the daemon (default)",
       minApiVersion: "1.41",
-    },
-    cgroupParent: {
-      name: "cgroup-parent",
-      type: "string",
-      description: "Optional parent cgroup for the container",
     },
     cidfile: { name: "cidfile", type: "string", description: "Write the container ID to the file" },
     cpuCount: {
@@ -9490,6 +9487,13 @@ export const createSpec = {
       description: "Limit CPU real-time runtime in microseconds",
       minApiVersion: "1.25",
     },
+    cpuShares: {
+      name: "cpu-shares",
+      type: "int64",
+      shorthand: "c",
+      defaultValue: "0",
+      description: "CPU shares (relative weight)",
+    },
     cpus: { name: "cpus", type: "decimal", description: "Number of CPUs", minApiVersion: "1.25" },
     cpusetCpus: {
       name: "cpuset-cpus",
@@ -9500,13 +9504,6 @@ export const createSpec = {
       name: "cpuset-mems",
       type: "string",
       description: "MEMs in which to allow execution (0-3, 0,1)",
-    },
-    cpuShares: {
-      name: "cpu-shares",
-      type: "int64",
-      shorthand: "c",
-      defaultValue: "0",
-      description: "CPU shares (relative weight)",
     },
     device: { name: "device", type: "list", description: "Add a host device to the container" },
     deviceCgroupRule: {
@@ -10157,9 +10154,9 @@ export const ImageBuildFlags = Schema.Struct({
   compress: Schema.optional(Schema.Boolean),
   cpuPeriod: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuQuota: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
+  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpusetCpus: Schema.optional(Schema.String),
   cpusetMems: Schema.optional(Schema.String),
-  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   file: Schema.optional(Schema.String),
   forceRm: Schema.optional(Schema.Boolean),
   iidfile: Schema.optional(Schema.String),
@@ -10227,6 +10224,13 @@ export const imageBuildSpec = {
       defaultValue: "0",
       description: "Limit the CPU CFS (Completely Fair Scheduler) quota",
     },
+    cpuShares: {
+      name: "cpu-shares",
+      type: "int64",
+      shorthand: "c",
+      defaultValue: "0",
+      description: "CPU shares (relative weight)",
+    },
     cpusetCpus: {
       name: "cpuset-cpus",
       type: "string",
@@ -10236,13 +10240,6 @@ export const imageBuildSpec = {
       name: "cpuset-mems",
       type: "string",
       description: "MEMs in which to allow execution (0-3, 0,1)",
-    },
-    cpuShares: {
-      name: "cpu-shares",
-      type: "int64",
-      shorthand: "c",
-      defaultValue: "0",
-      description: "CPU shares (relative weight)",
     },
     file: {
       name: "file",
@@ -11551,9 +11548,9 @@ export const NetworkCreateFlags = Schema.Struct({
   gateway: Schema.optional(Schema.Array(Schema.String)),
   ingress: Schema.optional(Schema.Boolean),
   internal: Schema.optional(Schema.Boolean),
+  ipRange: Schema.optional(Schema.Array(Schema.String)),
   ipamDriver: Schema.optional(Schema.String),
   ipamOpt: Schema.optional(Schema.Record(Schema.String, Schema.String)),
-  ipRange: Schema.optional(Schema.Array(Schema.String)),
   ipv4: Schema.optional(Schema.Boolean),
   ipv6: Schema.optional(Schema.Boolean),
   label: Schema.optional(Schema.Array(Schema.String)),
@@ -11625,6 +11622,12 @@ export const networkCreateSpec = {
       defaultValue: "false",
       description: "Restrict external access to the network",
     },
+    ipRange: {
+      name: "ip-range",
+      type: "ipNetSlice",
+      defaultValue: "[]",
+      description: "Allocate container ip from a sub-range",
+    },
     ipamDriver: {
       name: "ipam-driver",
       type: "string",
@@ -11636,12 +11639,6 @@ export const networkCreateSpec = {
       type: "map",
       defaultValue: "map[]",
       description: "Set IPAM driver specific options",
-    },
-    ipRange: {
-      name: "ip-range",
-      type: "ipNetSlice",
-      defaultValue: "[]",
-      description: "Allocate container ip from a sub-range",
     },
     ipv4: {
       name: "ipv4",
@@ -12890,8 +12887,8 @@ export const RunFlags = Schema.Struct({
   blkioWeightDevice: Schema.optional(Schema.Array(Schema.String)),
   capAdd: Schema.optional(Schema.Array(Schema.String)),
   capDrop: Schema.optional(Schema.Array(Schema.String)),
-  cgroupns: Schema.optional(Schema.String),
   cgroupParent: Schema.optional(Schema.String),
+  cgroupns: Schema.optional(Schema.String),
   cidfile: Schema.optional(Schema.String),
   cpuCount: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuPercent: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
@@ -12899,10 +12896,10 @@ export const RunFlags = Schema.Struct({
   cpuQuota: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtPeriod: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtRuntime: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
+  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpus: Schema.optional(Schema.Finite),
   cpusetCpus: Schema.optional(Schema.String),
   cpusetMems: Schema.optional(Schema.String),
-  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   detach: Schema.optional(Schema.Boolean),
   detachKeys: Schema.optional(Schema.String),
   device: Schema.optional(Schema.Array(Schema.String)),
@@ -13033,17 +13030,17 @@ export const runSpec = {
     },
     capAdd: { name: "cap-add", type: "list", description: "Add Linux capabilities" },
     capDrop: { name: "cap-drop", type: "list", description: "Drop Linux capabilities" },
+    cgroupParent: {
+      name: "cgroup-parent",
+      type: "string",
+      description: "Optional parent cgroup for the container",
+    },
     cgroupns: {
       name: "cgroupns",
       type: "string",
       description:
         "Cgroup namespace to use (host|private)\n'host':    Run the container in the Docker host's cgroup namespace\n'private': Run the container in its own private cgroup namespace\n'':        Use the cgroup namespace as configured by the\n           default-cgroupns-mode option on the daemon (default)",
       minApiVersion: "1.41",
-    },
-    cgroupParent: {
-      name: "cgroup-parent",
-      type: "string",
-      description: "Optional parent cgroup for the container",
     },
     cidfile: { name: "cidfile", type: "string", description: "Write the container ID to the file" },
     cpuCount: {
@@ -13086,6 +13083,13 @@ export const runSpec = {
       description: "Limit CPU real-time runtime in microseconds",
       minApiVersion: "1.25",
     },
+    cpuShares: {
+      name: "cpu-shares",
+      type: "int64",
+      shorthand: "c",
+      defaultValue: "0",
+      description: "CPU shares (relative weight)",
+    },
     cpus: { name: "cpus", type: "decimal", description: "Number of CPUs", minApiVersion: "1.25" },
     cpusetCpus: {
       name: "cpuset-cpus",
@@ -13096,13 +13100,6 @@ export const runSpec = {
       name: "cpuset-mems",
       type: "string",
       description: "MEMs in which to allow execution (0-3, 0,1)",
-    },
-    cpuShares: {
-      name: "cpu-shares",
-      type: "int64",
-      shorthand: "c",
-      defaultValue: "0",
-      description: "CPU shares (relative weight)",
     },
     detach: {
       name: "detach",
@@ -14650,8 +14647,8 @@ export const ServiceUpdateFlags = Schema.Struct({
   healthStartPeriod: Schema.optional(Schema.String),
   healthTimeout: Schema.optional(Schema.String),
   hostAdd: Schema.optional(Schema.Array(Schema.String)),
-  hostname: Schema.optional(Schema.String),
   hostRm: Schema.optional(Schema.Array(Schema.String)),
+  hostname: Schema.optional(Schema.String),
   image: Schema.optional(Schema.String),
   init: Schema.optional(Schema.Boolean),
   isolation: Schema.optional(Schema.String),
@@ -14908,16 +14905,16 @@ export const serviceUpdateSpec = {
       description: "Add a custom host-to-IP mapping (`host:ip`)",
       minApiVersion: "1.25",
     },
-    hostname: {
-      name: "hostname",
-      type: "string",
-      description: "Container hostname",
-      minApiVersion: "1.25",
-    },
     hostRm: {
       name: "host-rm",
       type: "list",
       description: "Remove a custom host-to-IP mapping (`host:ip`)",
+      minApiVersion: "1.25",
+    },
+    hostname: {
+      name: "hostname",
+      type: "string",
+      description: "Container hostname",
       minApiVersion: "1.25",
     },
     image: { name: "image", type: "string", description: "Service image tag" },
@@ -16668,7 +16665,7 @@ export const trustSigner = (input: TrustSignerInput, options?: CommandExecutionO
 export const trustSignerStream = (input: TrustSignerInput, options?: CommandExecutionOptions) =>
   invokeStream(trustSignerSpec, TrustSignerInputSchema, input, options);
 
-/** Flags for docker trust signer add (docker trust signer add OPTIONS NAME REPOSITORY [REPOSITORY...] ). */
+/** Flags for docker trust signer add (docker trust signer add OPTIONS NAME REPOSITORY [REPOSITORY...]). */
 export const TrustSignerAddFlags = Schema.Struct({
   key: Schema.optional(Schema.Array(Schema.String)),
 });
@@ -16758,10 +16755,10 @@ export const UpdateFlags = Schema.Struct({
   cpuQuota: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtPeriod: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpuRtRuntime: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
+  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   cpus: Schema.optional(Schema.Finite),
   cpusetCpus: Schema.optional(Schema.String),
   cpusetMems: Schema.optional(Schema.String),
-  cpuShares: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   memory: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   memoryReservation: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
   memorySwap: Schema.optional(Schema.Union([Schema.Int, Schema.String])),
@@ -16812,6 +16809,13 @@ export const updateSpec = {
       description: "Limit the CPU real-time runtime in microseconds",
       minApiVersion: "1.25",
     },
+    cpuShares: {
+      name: "cpu-shares",
+      type: "int64",
+      shorthand: "c",
+      defaultValue: "0",
+      description: "CPU shares (relative weight)",
+    },
     cpus: { name: "cpus", type: "decimal", description: "Number of CPUs", minApiVersion: "1.29" },
     cpusetCpus: {
       name: "cpuset-cpus",
@@ -16822,13 +16826,6 @@ export const updateSpec = {
       name: "cpuset-mems",
       type: "string",
       description: "MEMs in which to allow execution (0-3, 0,1)",
-    },
-    cpuShares: {
-      name: "cpu-shares",
-      type: "int64",
-      shorthand: "c",
-      defaultValue: "0",
-      description: "CPU shares (relative weight)",
     },
     memory: {
       name: "memory",

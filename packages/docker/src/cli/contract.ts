@@ -1,16 +1,54 @@
 /**
  * Canonical Docker CLI metadata shared by code generation and the runtime.
  *
- * These are the public metadata contracts. Source-side flag kinds are
- * exhaustively validated by the separate code-generation project against
- * the official reference. The runtime consumes the resulting literal
- * metadata without importing unpublished generator code.
+ * One Effect Schema defines the accepted Docker Go/Cobra flag kinds for
+ * generation and the published runtime. Unknown upstream types fail at the
+ * mirror/codegen boundary rather than silently weakening the SDK.
  */
 import * as Schema from "effect/Schema";
 
+export const CliValueType = Schema.Literals([
+  "bool",
+  "bytes",
+  "command",
+  "config",
+  "credential-spec",
+  "decimal",
+  "duration",
+  "external-ca",
+  "filter",
+  "float",
+  "gpu-request",
+  "int",
+  "int64",
+  "ip",
+  "ipNetSlice",
+  "ipSlice",
+  "list",
+  "map",
+  "mount",
+  "network",
+  "node-addr",
+  "pem-file",
+  "port",
+  "pref",
+  "secret",
+  "string",
+  "stringArray",
+  "stringSlice",
+  "stringToString",
+  "uint",
+  "uint16",
+  "uint32",
+  "uint64",
+  "ulimit",
+  "umask",
+]);
+export type CliValueType = Schema.Schema.Type<typeof CliValueType>;
+
 export const FlagSpecSchema = Schema.Struct({
   name: Schema.String.check(Schema.isNonEmpty()),
-  type: Schema.String.check(Schema.isNonEmpty()),
+  type: CliValueType,
   shorthand: Schema.optional(Schema.String),
   defaultValue: Schema.optional(Schema.String),
   description: Schema.optional(Schema.String),

@@ -8,8 +8,10 @@ import * as Docker from "@distilled.cloud/docker/cli";
  */
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as A from "effect/Array";
 import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
+import * as R from "effect/Record";
 import * as Schema from "effect/Schema";
 
 const FlagDifference = Schema.Struct({
@@ -24,8 +26,17 @@ const CompatibilityReport = Schema.Struct({
   flagDifferences: Schema.Array(FlagDifference),
 });
 
+class DockerCliCompatibilityError extends Schema.TaggedError<DockerCliCompatibilityError>()(
+  "DockerCliCompatibilityError",
+  {
+    unavailable: Schema.Int,
+    flagDifferences: Schema.Int,
+  },
+) {}
+
 export const audit = Effect.gen(function* () {
-  const specEntries = Object.entries(Docker).filter(
+  const specEntries = A.filter(
+    R.toEntries(Docker),
     ([name, value]) => name.endsWith("Spec") && typeof value === "object",
   );
   const specs = yield* Effect.forEach(specEntries, ([, value]) =>
@@ -36,17 +47,24 @@ export const audit = Effect.gen(function* () {
     (spec) => Effect.map(Docker.probeCommand(spec), (capability) => ({ spec, capability })),
     { concurrency: 4 },
   );
-  const unavailable = observations
-    .filter(({ capability }) => !capability.available)
-    .map(({ capability }) => capability.command);
-  const flagDifferences = observations.flatMap(({ spec, capability }) => {
+  const unavailable = A.map(
+    A.filter(observations, ({ capability }) => !capability.available),
+    ({ capability }) => capability.command,
+  );
+  const flagDifferences = A.flatMap(observations, ({ spec, capability }) => {
     if (!capability.available) return [];
     // These flags are conditional on runtime OS, API level or development
     // mode. Report only unconditional upstream flags as compatibility drift.
-    const missing = Object.values(spec.flags)
-      .filter((flag) => !flag.deprecated && !flag.experimental && flag.osType === undefined)
-      .map((flag) => flag.name)
-      .filter((flag) => !capability.flags.includes(flag));
+    const missing = A.filter(
+      A.map(
+        A.filter(
+          R.values(spec.flags),
+          (flag) => !flag.deprecated && !flag.experimental && flag.osType === undefined,
+        ),
+        (flag) => flag.name,
+      ),
+      (flag) => !capability.flags.includes(flag),
+    );
     return missing.length > 0 ? [{ command: capability.command, missing }] : [];
   });
   return {
@@ -67,7 +85,10 @@ if (import.meta.main) {
     yield* Console.log(json);
     if (strict && (report.unavailable.length > 0 || report.flagDifferences.length > 0)) {
       return yield* Effect.fail(
-        new Error("Installed Docker CLI differs from the official catalog"),
+        new DockerCliCompatibilityError({
+          unavailable: report.unavailable.length,
+          flagDifferences: report.flagDifferences.length,
+        }),
       );
     }
   }).pipe(Effect.provide(NodeServices.layer), NodeRuntime.runMain);

@@ -18,16 +18,22 @@
 
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as A from "effect/Array";
 import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 import * as Yaml from "effect/encoding/Yaml";
 import * as FileSystem from "effect/FileSystem";
+import * as HashSet from "effect/HashSet";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
 import * as HttpClient from "effect/http/HttpClient";
 import * as HttpClientRequest from "effect/http/HttpClientRequest";
 import * as HttpClientResponse from "effect/http/HttpClientResponse";
 import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
+import * as Order from "effect/Order";
+import * as R from "effect/Record";
 import * as Schema from "effect/Schema";
+import * as Str from "effect/String";
 import YAML from "yaml";
 
 /** Upstream repository, as `<owner>/<repo>`. */
@@ -38,6 +44,23 @@ const REF = "master";
 const SPEC_PATH = "api/swagger.yaml";
 const SPECS_DIR = "../specs";
 const OUTPUT_PATH = `${SPECS_DIR}/swagger.json`;
+
+class DockerCliMirrorError extends Schema.TaggedError<DockerCliMirrorError>()(
+  "DockerCliMirrorError",
+  {
+    source: Schema.String,
+    reason: Schema.Literals([
+      "incomplete-tree",
+      "invalid-path",
+      "invalid-catalog",
+      "invalid-yaml",
+      "invalid-swagger",
+      "invalid-command",
+      "invalid-usage",
+      "insufficient-commands",
+    ]),
+  },
+) {}
 
 /** A moving branch is resolved to a commit before any CLI document is read. */
 const CLI_CATALOGS = [
@@ -118,32 +141,39 @@ const cliSources = Effect.gen(function* () {
           ),
         );
         if (tree.truncated === true) {
-          return yield* Effect.fail(new Error("Incomplete upstream CLI tree: " + repo));
+          return yield* new DockerCliMirrorError({ source: repo, reason: "incomplete-tree" });
         }
-        const [owner, repository] = repo.split("/");
-        const matches = tree.tree.flatMap((entry) => {
-          const path = entry.path;
-          if (
-            entry.type !== "blob" ||
-            path === undefined ||
-            !path.endsWith(".yaml") ||
-            !prefixes.some((prefix) => path.startsWith(prefix))
-          )
-            return [];
-          return [path];
-        });
-        const invalid = matches.find(
+        const [owner, repository] = yield* Schema.decodeUnknownEffect(
+          Schema.Tuple([Schema.String, Schema.String]),
+        )(Str.split(repo, "/"));
+        const matches = A.getSomes(
+          A.map(tree.tree, (entry) => {
+            const path = entry.path;
+            if (
+              entry.type !== "blob" ||
+              path === undefined ||
+              !path.endsWith(".yaml") ||
+              !A.some(prefixes, (prefix) => path.startsWith(prefix))
+            )
+              return Option.none();
+            return Option.some(path);
+          }),
+        );
+        const invalid = A.findFirst(
+          matches,
           (path) => !/^docker_[a-z0-9_-]+\.yaml$/.test(path.slice(path.lastIndexOf("/") + 1)),
         );
-        if (invalid !== undefined) {
-          return yield* Effect.fail(new Error("Unexpected Docker CLI upstream path: " + invalid));
+        if (Option.isSome(invalid)) {
+          return yield* Effect.fail(
+            new DockerCliMirrorError({ source: invalid.value, reason: "invalid-path" }),
+          );
         }
-        return matches.map((path): CliSource => {
+        return A.map(matches, (path): CliSource => {
           const basename = path.slice(path.lastIndexOf("/") + 1);
           return {
             name: basename.slice("docker_".length, -".yaml".length).replaceAll("_", "-"),
-            owner: owner!,
-            repo: repository!,
+            owner,
+            repo: repository,
             revision,
             path,
           };
@@ -151,13 +181,13 @@ const cliSources = Effect.gen(function* () {
       }),
     { concurrency: 2 },
   );
-  const sources = groups.flat().sort((a, b) => a.name.localeCompare(b.name));
+  const sources = A.sortWith(A.flatten(groups), (source) => source.name, Order.String);
   if (
     sources.length < 200 ||
-    new Set(sources.map((source) => source.name)).size !== sources.length
+    HashSet.size(HashSet.fromIterable(A.map(sources, (source) => source.name))) !== sources.length
   ) {
     return yield* Effect.fail(
-      new Error("Docker CLI catalog is incomplete or contains duplicate commands"),
+      new DockerCliMirrorError({ source: "Docker CLI catalog", reason: "invalid-catalog" }),
     );
   }
   return sources;
@@ -166,7 +196,7 @@ const cliSources = Effect.gen(function* () {
 const parseYaml = (source: string) =>
   Effect.try({
     try: () => Yaml.parse(source),
-    catch: () => new Error("Invalid upstream YAML document"),
+    catch: () => new DockerCliMirrorError({ source: "CLI reference YAML", reason: "invalid-yaml" }),
   });
 
 // Docker Engine's official Swagger uses compact nested block sequences that
@@ -175,7 +205,8 @@ const parseYaml = (source: string) =>
 const parseSwagger = (source: string) =>
   Effect.try({
     try: () => YAML.parse(source) as unknown,
-    catch: () => new Error("Invalid Docker Engine Swagger YAML"),
+    catch: () =>
+      new DockerCliMirrorError({ source: "Docker Engine Swagger", reason: "invalid-swagger" }),
   });
 
 const fetchCli = Effect.gen(function* () {
@@ -202,14 +233,14 @@ const fetchCli = Effect.gen(function* () {
           reference.command.split(" ").join("_") + ".yaml" !==
           source.path.slice(source.path.lastIndexOf("/") + 1)
         ) {
-          return yield* Effect.fail(new Error("Invalid Docker CLI command: " + url));
+          return yield* new DockerCliMirrorError({ source: url, reason: "invalid-command" });
         }
         if (reference.usage === undefined) return undefined; // parent group
         if (
           reference.usage !== reference.command &&
           !reference.usage.startsWith(reference.command + " ")
         ) {
-          return yield* Effect.fail(new Error("Invalid Docker CLI usage: " + url));
+          return yield* new DockerCliMirrorError({ source: url, reason: "invalid-usage" });
         }
         // Docker's cli-docs-tool emits YAML from its Go/Cobra command tree.
         // Validate and normalize it to the canonical JSON consumed by the
@@ -221,10 +252,10 @@ const fetchCli = Effect.gen(function* () {
       }),
     { concurrency: 12 },
   );
-  const runnable = files.filter((file) => file !== undefined);
+  const runnable = A.getSomes(A.map(files, Option.fromNullishOr));
   if (runnable.length < 200) {
     return yield* Effect.fail(
-      new Error("Too few runnable Docker CLI operations in the official mirror"),
+      new DockerCliMirrorError({ source: "Docker CLI catalog", reason: "insufficient-commands" }),
     );
   }
   return runnable;
@@ -240,7 +271,7 @@ const rawUrl = (path: string) =>
   "/" +
   REF +
   "/" +
-  path.split("/").map(encodeURIComponent).join("/");
+  A.map(Str.split(path, "/"), encodeURIComponent).join("/");
 
 const program = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
@@ -257,7 +288,7 @@ const program = Effect.gen(function* () {
   )(document);
   const manifestJson = yield* Schema.encodeUnknownEffect(
     Schema.fromJsonString(Schema.Array(CliSource), { space: 2 }),
-  )(runnable.map(({ source }) => source));
+  )(A.map(runnable, ({ source }) => source));
 
   yield* fs.makeDirectory(SPECS_DIR, { recursive: true });
   yield* fs.makeDirectory(SPECS_DIR + "/cli", { recursive: true });
@@ -273,10 +304,10 @@ const program = Effect.gen(function* () {
   // Keep descriptors separate from the index: `docker manifest` is itself an
   // executable command, so its descriptor must never overwrite manifest.json.
   // Also remove stale descriptors after validating the full upstream catalog.
-  const expected = new Set(runnable.map(({ source }) => `${source.name}.json`));
+  const expected = HashSet.fromIterable(A.map(runnable, ({ source }) => `${source.name}.json`));
   const commands = yield* fs.readDirectory(SPECS_DIR + "/cli/commands");
   yield* Effect.forEach(
-    commands.filter((name) => name.endsWith(".json") && !expected.has(name)),
+    A.filter(commands, (name) => name.endsWith(".json") && !HashSet.has(expected, name)),
     (name) => fs.remove(SPECS_DIR + "/cli/commands/" + name),
     { concurrency: 8, discard: true },
   );
@@ -284,7 +315,8 @@ const program = Effect.gen(function* () {
   // other than the exact names owned by this generator.
   const existing = yield* fs.readDirectory(SPECS_DIR + "/cli");
   yield* Effect.forEach(
-    existing.filter(
+    A.filter(
+      existing,
       (name) => name.endsWith(".yaml") || (name.endsWith(".json") && name !== "manifest.json"),
     ),
     (name) => fs.remove(SPECS_DIR + "/cli/" + name),
@@ -293,9 +325,7 @@ const program = Effect.gen(function* () {
   yield* Console.log(
     "Mirrored " + runnable.length + " runnable Docker CLI references from Docker docs and Compose",
   );
-  yield* Console.log(
-    "Done! Swagger " + spec.swagger + " — " + Object.keys(spec.paths).length + " paths",
-  );
+  yield* Console.log("Done! Swagger " + spec.swagger + " — " + R.size(spec.paths) + " paths");
 });
 
 program.pipe(
