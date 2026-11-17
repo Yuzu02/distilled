@@ -992,6 +992,9 @@ importers:
       '@distilled.cloud/dev':
         specifier: workspace:*
         version: link:../dev
+      '@effect/platform-node':
+        specifier: 'catalog:'
+        version: 4.1.4(effect@4.1.4)(redis@6.2.1)
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.5

@@ -51,6 +51,17 @@
       "worker": "./src/protocol.ts",
       "default": "./lib/protocol.js"
     },
+    "./NodeHttpClient": {
+      "types": "./lib/NodeHttpClient.d.ts",
+      "bun": "./src/NodeHttpClient.ts",
+      "default": "./lib/NodeHttpClient.js"
+    },
+    "./Streams": {
+      "types": "./lib/Streams.d.ts",
+      "bun": "./src/Streams.ts",
+      "worker": "./src/Streams.ts",
+      "default": "./lib/Streams.js"
+    },
     "./Retry": {
       "types": "./lib/retry.d.ts",
       "bun": "./src/retry.ts",
@@ -78,10 +89,17 @@
   },
   "devDependencies": {
     "@distilled.cloud/dev": "workspace:*",
+    "@effect/platform-node": "catalog:",
     "@types/node": "catalog:"
   },
   "peerDependencies": {
+    "@effect/platform-node": "catalog:",
     "effect": "catalog:"
+  },
+  "peerDependenciesMeta": {
+    "@effect/platform-node": {
+      "optional": true
+    }
   },
   "distilled": {
     "generatedAt": "2026-11-15",
