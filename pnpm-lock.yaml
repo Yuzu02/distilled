@@ -1555,6 +1555,22 @@ importers:
         specifier: 'catalog:'
         version: 26.6.5
 
+  packages/mux:
+    dependencies:
+      '@distilled.cloud/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.4
+    devDependencies:
+      '@distilled.cloud/dev':
+        specifier: workspace:*
+        version: link:../dev
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.5
+
   packages/namespacelabs:
     dependencies:
       '@distilled.cloud/core':
@@ -2286,6 +2302,22 @@ importers:
         specifier: 'catalog:'
         version: 26.6.5
 
+  packages/tinybird:
+    dependencies:
+      '@distilled.cloud/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.4
+    devDependencies:
+      '@distilled.cloud/dev':
+        specifier: workspace:*
+        version: link:../dev
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.5
+
   packages/trigger-dev:
     dependencies:
       '@distilled.cloud/core':
@@ -2319,6 +2351,22 @@ importers:
         version: 26.6.5
 
   packages/turso:
+    dependencies:
+      '@distilled.cloud/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.4
+    devDependencies:
+      '@distilled.cloud/dev':
+        specifier: workspace:*
+        version: link:../dev
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.5
+
+  packages/twitch:
     dependencies:
       '@distilled.cloud/core':
         specifier: workspace:*
@@ -2400,6 +2448,25 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.5
+
+  packages/whatsapp:
+    dependencies:
+      '@distilled.cloud/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.4
+    devDependencies:
+      '@distilled.cloud/dev':
+        specifier: workspace:*
+        version: link:../dev
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.5
+      yaml:
+        specifier: 'catalog:'
+        version: 2.9.1
 
   packages/whop:
     dependencies:
@@ -2536,6 +2603,9 @@ importers:
       graphql:
         specifier: 'catalog:'
         version: 16.11.0
+      parse5:
+        specifier: 7.3.0
+        version: 7.3.0
       tsrs:
         specifier: 'catalog:'
         version: 0.18.0-ts7.1.0-dev.20260929
